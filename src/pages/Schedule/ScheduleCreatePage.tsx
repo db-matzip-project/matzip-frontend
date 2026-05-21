@@ -71,22 +71,22 @@ export default function ScheduleCreatePage() {
           onChange={(e) => setDate(e.target.value)}
         />
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-gray-700">메모 (선택)</label>
+          <label className="text-sm font-medium text-brand">메모 (선택)</label>
           <textarea
             value={memo}
             onChange={(e) => setMemo(e.target.value)}
             placeholder="시간, 동행자 등 메모"
             rows={2}
-            className="w-full resize-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+            className="w-full resize-none rounded-xl border border-brand-light bg-brand-soft px-4 py-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand-light"
           />
         </div>
 
         <div>
-          <h2 className="mb-2 text-sm font-bold text-gray-900">
+          <h2 className="mb-2 text-sm font-bold text-ink">
             방문 식당 선택 ({selectedIds.length})
           </h2>
           {preselectedId && (
-            <p className="mb-2 text-xs text-orange-600">
+            <p className="mb-2 text-xs text-brand">
               상세 페이지에서 선택한 식당이 포함되어 있습니다.
             </p>
           )}
@@ -98,7 +98,7 @@ export default function ScheduleCreatePage() {
 
         {selectedIds.length >= 2 && (
           <div>
-            <h2 className="mb-2 text-sm font-bold text-gray-900">동선 미리보기</h2>
+            <h2 className="mb-2 text-sm font-bold text-ink">동선 미리보기</h2>
             <RouteVisualization restaurantIds={selectedIds} />
           </div>
         )}

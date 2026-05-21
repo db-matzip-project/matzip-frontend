@@ -15,10 +15,10 @@ export default function Chip({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center gap-1 rounded-full border px-3.5 py-2 text-sm font-medium transition-all ${
+      className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-3.5 py-2 text-sm font-medium transition-colors duration-200 ${
         selected
-          ? 'border-orange-500 bg-orange-50 text-orange-700 shadow-sm'
-          : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50'
+          ? 'border-brand bg-brand text-white'
+          : 'border-brand-light bg-cream text-ink hover:border-brand-muted hover:bg-brand-soft'
       }`}
     >
       {emoji && <span aria-hidden>{emoji}</span>}

@@ -3,6 +3,24 @@
 @theme {
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR",
     sans-serif;
+  --font-logo: "Jua", "Noto Sans KR", sans-serif;
+
+  /* 메인 — 따뜻한 오렌지 (맛집 앱 톤, 캐치테이블 계열) */
+  --color-brand: #ff6b35;
+  --color-brand-dark: #e85a24;
+  --color-brand-soft: #fff8f4;
+  --color-brand-light: #ffede4;
+  --color-brand-muted: #ffd9c8;
+
+  /* 배경 — 밝고 따뜻한 뉴트럴 */
+  --color-cream: #ffffff;
+  --color-surface: #fffdfb;
+  --color-surface-2: #fff9f6;
+
+  /* 텍스트 */
+  --color-ink: #2c2825;
+  --color-muted: #6b6560;
+  --color-subtle: #a39e96;
 }
 
 *,
@@ -19,10 +37,14 @@ html {
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background-color: #f9fafb;
-  color: #111827;
+  background-color: var(--color-cream);
+  color: var(--color-ink);
 }
 
 #root {
   min-height: 100svh;
+}
+
+.font-logo {
+  font-family: var(--font-logo);
 }

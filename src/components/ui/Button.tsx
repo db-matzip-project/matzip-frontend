@@ -8,11 +8,11 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const variantStyles: Record<ButtonVariant, string> = {
-  primary: 'bg-orange-500 text-white hover:bg-orange-600 active:bg-orange-700',
+  primary: 'bg-brand text-white hover:bg-brand-dark active:bg-brand-dark',
   secondary:
-    'bg-white text-gray-800 border border-gray-200 hover:bg-gray-50 active:bg-gray-100',
-  ghost: 'bg-transparent text-gray-600 hover:bg-gray-100',
-  danger: 'bg-red-500 text-white hover:bg-red-600',
+    'bg-cream text-ink border border-brand-light hover:bg-brand-soft active:bg-brand-muted',
+  ghost: 'bg-transparent text-brand hover:bg-brand-soft',
+  danger: 'bg-red-400 text-white hover:bg-red-500',
 };
 
 export default function Button({
@@ -27,7 +27,7 @@ export default function Button({
     <button
       type="button"
       disabled={disabled}
-      className={`inline-flex items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${variantStyles[variant]} ${fullWidth ? 'w-full' : ''} ${className}`}
+      className={`inline-flex items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${variantStyles[variant]} ${fullWidth ? 'w-full' : ''} ${className}`}
       {...props}
     >
       {children}

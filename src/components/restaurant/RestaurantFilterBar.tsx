@@ -21,7 +21,7 @@ export default function RestaurantFilterBar({
   return (
     <div className="space-y-4">
       <div>
-        <p className="mb-2 text-xs font-semibold text-gray-500">카테고리</p>
+        <p className="mb-2 text-xs font-semibold text-muted">카테고리</p>
         <div className="flex flex-wrap gap-2">
           {RESTAURANT_CATEGORIES.map((cat) => (
             <Chip
@@ -35,7 +35,7 @@ export default function RestaurantFilterBar({
       </div>
 
       <div>
-        <p className="mb-2 text-xs font-semibold text-gray-500">최소 평점</p>
+        <p className="mb-2 text-xs font-semibold text-muted">최소 평점</p>
         <div className="flex flex-wrap gap-2">
           {RATING_OPTIONS.map(({ value, label }) => (
             <Chip
@@ -49,7 +49,7 @@ export default function RestaurantFilterBar({
       </div>
 
       <div>
-        <p className="mb-2 text-xs font-semibold text-gray-500">가격대</p>
+        <p className="mb-2 text-xs font-semibold text-muted">가격대</p>
         <div className="flex flex-wrap gap-2">
           {PRICE_OPTIONS.map(({ value, label }) => (
             <Chip
@@ -63,7 +63,7 @@ export default function RestaurantFilterBar({
       </div>
 
       <div>
-        <p className="mb-2 text-xs font-semibold text-gray-500">정렬</p>
+        <p className="mb-2 text-xs font-semibold text-muted">정렬</p>
         <div className="flex flex-wrap gap-2">
           {SORT_OPTIONS.map(({ value, label }) => (
             <Chip
@@ -76,8 +76,8 @@ export default function RestaurantFilterBar({
         </div>
       </div>
 
-      <p className="text-sm text-gray-600">
-        <span className="font-bold text-orange-600">{resultCount}</span>개 식당
+      <p className="text-sm text-muted">
+        <span className="font-bold text-brand">{resultCount}</span>개 식당
       </p>
     </div>
   );

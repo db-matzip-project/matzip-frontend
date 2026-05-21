@@ -32,7 +32,7 @@ export default function RestaurantListPage() {
         action={
           <Link
             to="/restaurants/search"
-            className="shrink-0 rounded-full bg-orange-500 px-3 py-1.5 text-xs font-medium text-white"
+            className="shrink-0 rounded-full bg-brand px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-dark"
           >
             검색·필터
           </Link>
@@ -53,13 +53,13 @@ export default function RestaurantListPage() {
       </div>
 
       <div className="mb-3 flex items-center justify-between px-4">
-        <p className="text-sm text-gray-600">
-          <span className="font-bold text-gray-900">{restaurants.length}</span>개
+        <p className="text-sm text-muted">
+          <span className="font-bold text-ink">{restaurants.length}</span>개
           표시 중
         </p>
         <Link
           to="/restaurants/map"
-          className="text-xs font-medium text-orange-600"
+          className="text-xs font-medium text-brand"
         >
           지도로 보기 →
         </Link>
@@ -71,7 +71,7 @@ export default function RestaurantListPage() {
             <RestaurantCard key={r.id} restaurant={r} showMatch={false} />
           ))
         ) : (
-          <div className="rounded-2xl bg-gray-50 py-12 text-center text-sm text-gray-500">
+          <div className="rounded-2xl bg-brand-soft py-12 text-center text-sm text-muted">
             해당 카테고리의 식당이 없습니다.
           </div>
         )}

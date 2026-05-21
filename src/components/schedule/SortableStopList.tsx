@@ -53,33 +53,31 @@ function SortableStopItem({
     <li
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-3 rounded-2xl border bg-white p-3 ${
-        isDragging
-          ? 'z-10 border-orange-400 shadow-lg'
-          : 'border-gray-100 shadow-sm'
+      className={`flex items-center gap-3 rounded-2xl border bg-cream p-3 ${
+        isDragging ? 'z-10 border-brand bg-brand-soft' : 'border-brand-light'
       }`}
     >
       <button
         type="button"
-        className="flex h-10 w-8 shrink-0 cursor-grab touch-none flex-col items-center justify-center gap-0.5 text-gray-400 active:cursor-grabbing"
+        className="flex h-10 w-8 shrink-0 cursor-grab touch-none flex-col items-center justify-center gap-0.5 text-subtle active:cursor-grabbing"
         aria-label="순서 변경 드래그"
         {...attributes}
         {...listeners}
       >
-        <span className="h-0.5 w-4 rounded bg-gray-300" />
-        <span className="h-0.5 w-4 rounded bg-gray-300" />
-        <span className="h-0.5 w-4 rounded bg-gray-300" />
+        <span className="h-0.5 w-4 rounded-full bg-brand-light" />
+        <span className="h-0.5 w-4 rounded-full bg-brand-light" />
+        <span className="h-0.5 w-4 rounded-full bg-brand-light" />
       </button>
 
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-orange-500 text-xs font-bold text-white">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">
         {order}
       </span>
 
       <span className="text-2xl">{restaurant.imageEmoji}</span>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate font-medium text-gray-900">{restaurant.name}</p>
-        <p className="text-xs text-gray-500">
+        <p className="truncate font-medium text-ink">{restaurant.name}</p>
+        <p className="text-xs text-muted">
           {restaurant.category} · {restaurant.distance}
         </p>
       </div>
@@ -120,7 +118,7 @@ export default function SortableStopList({
 
   if (restaurantIds.length === 0) {
     return (
-      <p className="rounded-2xl bg-gray-50 py-8 text-center text-sm text-gray-500">
+      <p className="rounded-2xl border border-brand-light bg-brand-soft py-8 text-center text-sm text-muted">
         아직 추가된 식당이 없습니다.
       </p>
     );
@@ -147,7 +145,7 @@ export default function SortableStopList({
           ))}
         </ul>
       </SortableContext>
-      <p className="mt-2 text-center text-[10px] text-gray-400">
+      <p className="mt-2 text-center text-[10px] text-subtle">
         ≡ 핸들을 드래그하여 방문 순서를 변경하세요
       </p>
     </DndContext>

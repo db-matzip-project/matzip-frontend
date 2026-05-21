@@ -30,14 +30,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-svh flex-col px-6 py-10">
-      <div className="mb-10 text-center">
-        <span className="text-4xl" aria-hidden>
-          🍽️
-        </span>
-        <h1 className="mt-3 text-2xl font-bold text-gray-900">맛.zip</h1>
-        <p className="mt-1 text-sm text-gray-500">나만의 맛집 탐방을 시작해요</p>
-      </div>
+    <div className="flex flex-col px-6 pb-8 pt-2">
+      <p className="mb-6 text-sm text-muted">나만의 맛집 탐방을 시작해요</p>
 
       <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-4">
         <Input
@@ -66,14 +60,14 @@ export default function LoginPage() {
       </form>
 
       <div className="mt-6 space-y-4 text-center text-sm">
-        <p className="text-gray-500">
+        <p className="text-muted">
           계정이 없으신가요?{' '}
-          <Link to="/signup" className="font-semibold text-orange-600">
+          <Link to="/signup" className="font-semibold text-brand">
             회원가입
           </Link>
         </p>
-        <div className="rounded-xl bg-gray-50 px-4 py-3 text-left text-xs text-gray-500">
-          <p className="font-medium text-gray-700">테스트 계정</p>
+        <div className="rounded-xl border border-brand-light bg-brand-soft px-4 py-3 text-left text-xs text-muted">
+          <p className="font-medium text-ink">테스트 계정</p>
           <p className="mt-1">demo / demo1234 (취향 설정 완료)</p>
           <p>newuser / pass1234 (온보딩 필요)</p>
         </div>

@@ -16,13 +16,13 @@ export default function Input({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={inputId} className="text-sm font-medium text-gray-700">
+      <label htmlFor={inputId} className="text-sm font-medium text-ink">
         {label}
       </label>
       <input
         id={inputId}
-        className={`w-full rounded-xl border bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 ${
-          error ? 'border-red-400' : 'border-gray-200'
+        className={`w-full rounded-xl border bg-cream px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-subtle focus:border-brand focus:ring-2 focus:ring-brand-light ${
+          error ? 'border-red-300' : 'border-brand-light'
         } ${className}`}
         {...props}
       />

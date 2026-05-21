@@ -25,7 +25,7 @@ export default function ScheduleDetailPage() {
   if (!schedule) {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-6">
-        <p className="text-gray-500">일정을 찾을 수 없습니다.</p>
+        <p className="text-muted">일정을 찾을 수 없습니다.</p>
         <Button onClick={() => navigate('/schedules')}>목록으로</Button>
       </div>
     );
@@ -61,7 +61,7 @@ export default function ScheduleDetailPage() {
         action={
           <Link
             to={`/schedules/${schedule.id}/edit`}
-            className="text-xs font-medium text-orange-600"
+            className="text-xs font-medium text-brand"
           >
             수정
           </Link>
@@ -70,7 +70,7 @@ export default function ScheduleDetailPage() {
 
       <div className="space-y-6 px-4 py-4">
         {schedule.memo && (
-          <p className="rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-600">
+          <p className="rounded-xl bg-brand-soft px-4 py-3 text-sm text-muted">
             {schedule.memo}
           </p>
         )}
@@ -78,13 +78,13 @@ export default function ScheduleDetailPage() {
         {/* 방문 순서 (DnD) */}
         <section>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-bold text-gray-900">
+            <h2 className="text-sm font-bold text-ink">
               방문 순서 ({schedule.restaurantIds.length})
             </h2>
             <button
               type="button"
               onClick={() => setShowPicker((v) => !v)}
-              className="text-xs font-medium text-orange-600"
+              className="text-xs font-medium text-brand"
             >
               {showPicker ? '닫기' : '+ 식당 추가'}
             </button>
@@ -98,8 +98,8 @@ export default function ScheduleDetailPage() {
         </section>
 
         {showPicker && (
-          <section className="rounded-2xl border border-orange-200 bg-orange-50/50 p-4">
-            <h3 className="mb-2 text-sm font-bold text-gray-900">식당 추가</h3>
+          <section className="rounded-2xl border border-brand-light bg-brand-soft p-4">
+            <h3 className="mb-2 text-sm font-bold text-ink">식당 추가</h3>
             <RestaurantPicker
               selectedIds={pickerSelection}
               onToggle={togglePickerItem}
@@ -118,7 +118,7 @@ export default function ScheduleDetailPage() {
 
         {/* 이동 동선 */}
         <section>
-          <h2 className="mb-3 text-sm font-bold text-gray-900">이동 동선 · 예상 거리</h2>
+          <h2 className="mb-3 text-sm font-bold text-ink">이동 동선 · 예상 거리</h2>
           <RouteVisualization restaurantIds={schedule.restaurantIds} />
         </section>
 

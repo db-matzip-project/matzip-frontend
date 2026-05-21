@@ -30,13 +30,13 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="flex min-h-svh flex-col px-6 py-10">
-      <div className="mb-8">
-        <p className="text-sm font-medium text-orange-600">STEP 1 / 1</p>
-        <h1 className="mt-2 text-2xl font-bold text-gray-900">
+    <div className="flex flex-col px-6 pb-10 pt-4">
+      <div className="mb-6">
+        <p className="text-sm font-semibold text-brand">STEP 1 / 1</p>
+        <h1 className="mt-2 text-2xl font-bold text-ink">
           어떤 맛을 좋아하세요?
         </h1>
-        <p className="mt-2 text-sm text-gray-500">
+        <p className="mt-2 text-sm text-muted">
           {MIN_SELECTION}개 이상 선택하면 더 정확한 맞춤 추천을 받을 수 있어요.
         </p>
       </div>
@@ -53,11 +53,11 @@ export default function OnboardingPage() {
         ))}
       </div>
 
-      <p className="mt-4 text-center text-sm text-gray-500">
-        <span className="font-semibold text-orange-600">{selected.length}</span>
+      <p className="mt-4 text-center text-sm text-muted">
+        <span className="font-semibold text-brand">{selected.length}</span>
         개 선택됨
         {selected.length < MIN_SELECTION && (
-          <span className="text-gray-400">
+          <span className="text-subtle">
             {' '}
             · {MIN_SELECTION - selected.length}개 더 선택해 주세요
           </span>

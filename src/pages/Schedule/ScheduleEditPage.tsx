@@ -24,7 +24,7 @@ export default function ScheduleEditPage() {
   if (!schedule) {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-6">
-        <p className="text-gray-500">일정을 찾을 수 없습니다.</p>
+        <p className="text-muted">일정을 찾을 수 없습니다.</p>
         <Button onClick={() => navigate('/schedules')}>목록으로</Button>
       </div>
     );
@@ -83,17 +83,17 @@ export default function ScheduleEditPage() {
           onChange={(e) => setDate(e.target.value)}
         />
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-gray-700">메모</label>
+          <label className="text-sm font-medium text-brand">메모</label>
           <textarea
             value={memo}
             onChange={(e) => setMemo(e.target.value)}
             rows={2}
-            className="w-full resize-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+            className="w-full resize-none rounded-xl border border-brand-light bg-brand-soft px-4 py-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand-light"
           />
         </div>
 
         <div>
-          <h2 className="mb-2 text-sm font-bold text-gray-900">
+          <h2 className="mb-2 text-sm font-bold text-ink">
             방문 식당 ({selectedIds.length})
           </h2>
           <RestaurantPicker
@@ -104,7 +104,7 @@ export default function ScheduleEditPage() {
 
         {selectedIds.length >= 2 && (
           <div>
-            <h2 className="mb-2 text-sm font-bold text-gray-900">동선 미리보기</h2>
+            <h2 className="mb-2 text-sm font-bold text-ink">동선 미리보기</h2>
             <RouteVisualization restaurantIds={selectedIds} />
           </div>
         )}

@@ -99,9 +99,9 @@ export default function SignUpPage() {
         <Button type="submit" fullWidth className="mt-auto">
           가입하기
         </Button>
-        <p className="text-center text-sm text-gray-500">
+        <p className="text-center text-sm text-muted">
           이미 계정이 있으신가요?{' '}
-          <Link to="/login" className="font-semibold text-orange-600">
+          <Link to="/login" className="font-semibold text-brand">
             로그인
           </Link>
         </p>
