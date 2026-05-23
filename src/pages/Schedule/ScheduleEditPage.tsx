@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import RestaurantPicker from '../../components/schedule/RestaurantPicker';
 import RouteVisualization from '../../components/schedule/RouteVisualization';
@@ -10,16 +10,38 @@ import { useSchedules } from '../../context/ScheduleContext';
 export default function ScheduleEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getSchedule, updateSchedule, deleteSchedule } = useSchedules();
+  const { getSchedule, fetchScheduleDetail, updateSchedule, deleteSchedule } =
+    useSchedules();
   const schedule = id ? getSchedule(id) : undefined;
 
-  const [title, setTitle] = useState(schedule?.title ?? '');
-  const [date, setDate] = useState(schedule?.date ?? '');
-  const [memo, setMemo] = useState(schedule?.memo ?? '');
-  const [selectedIds, setSelectedIds] = useState<string[]>(
-    schedule?.restaurantIds ?? [],
-  );
+  const [title, setTitle] = useState('');
+  const [date, setDate] = useState('');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!id) return;
+    (async () => {
+      setLoading(true);
+      const detail = await fetchScheduleDetail(id);
+      if (detail) {
+        setTitle(detail.title);
+        setDate(detail.date);
+        setSelectedIds(detail.restaurantIds);
+      }
+      setLoading(false);
+    })();
+  }, [id, fetchScheduleDetail]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center text-sm text-muted">
+        일정을 불러오는 중...
+      </div>
+    );
+  }
 
   if (!schedule) {
     return (
@@ -33,12 +55,12 @@ export default function ScheduleEditPage() {
   const toggleRestaurant = (restaurantId: string) => {
     setSelectedIds((prev) =>
       prev.includes(restaurantId)
-        ? prev.filter((id) => id !== restaurantId)
+        ? prev.filter((rid) => rid !== restaurantId)
         : [...prev, restaurantId],
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -47,28 +69,35 @@ export default function ScheduleEditPage() {
       return;
     }
 
-    updateSchedule(schedule.id, {
-      title,
-      date,
-      memo,
-      restaurantIds: selectedIds,
-    });
-    navigate(`/schedules/${schedule.id}`, { replace: true });
+    setSubmitting(true);
+    try {
+      await updateSchedule(schedule.id, {
+        title,
+        date,
+        restaurantIds: selectedIds,
+      });
+      navigate(`/schedules/${schedule.id}`, { replace: true });
+    } catch {
+      setError('일정 수정에 실패했습니다.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleDelete = () => {
-    if (window.confirm(`"${schedule.title}" 일정을 삭제할까요?`)) {
-      deleteSchedule(schedule.id);
+  const handleDelete = async () => {
+    if (!window.confirm(`"${schedule.title}" 일정을 삭제할까요?`)) return;
+    setSubmitting(true);
+    try {
+      await deleteSchedule(schedule.id);
       navigate('/schedules', { replace: true });
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
     <div className="pb-6">
-      <PageHeader
-        title="일정 수정"
-        backTo={`/schedules/${schedule.id}`}
-      />
+      <PageHeader title="일정 수정" backTo={`/schedules/${schedule.id}`} />
 
       <form onSubmit={handleSubmit} className="space-y-6 px-4 py-4">
         <Input
@@ -82,15 +111,6 @@ export default function ScheduleEditPage() {
           value={date}
           onChange={(e) => setDate(e.target.value)}
         />
-        <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-brand">메모</label>
-          <textarea
-            value={memo}
-            onChange={(e) => setMemo(e.target.value)}
-            rows={2}
-            className="w-full resize-none rounded-xl border border-brand-light bg-brand-soft px-4 py-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand-light"
-          />
-        </div>
 
         <div>
           <h2 className="mb-2 text-sm font-bold text-ink">
@@ -113,10 +133,16 @@ export default function ScheduleEditPage() {
           <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
         )}
 
-        <Button type="submit" fullWidth>
-          저장하기
+        <Button type="submit" fullWidth disabled={submitting}>
+          {submitting ? '저장 중...' : '저장하기'}
         </Button>
-        <Button type="button" variant="danger" fullWidth onClick={handleDelete}>
+        <Button
+          type="button"
+          variant="danger"
+          fullWidth
+          onClick={handleDelete}
+          disabled={submitting}
+        >
           일정 삭제
         </Button>
       </form>

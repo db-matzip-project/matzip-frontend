@@ -4,13 +4,29 @@ import Chip from '../../components/ui/Chip';
 import Button from '../../components/ui/Button';
 import { PREFERENCE_OPTIONS } from '../../constants/preferences';
 import { useAuth } from '../../context/AuthContext';
+import { usePreferences } from '../../context/PreferenceContext';
 
 const MIN_SELECTION = 3;
 
 export default function OnboardingPage() {
   const { user, setPreferences } = useAuth();
+  const { catalog, loading: catalogLoading } = usePreferences();
   const navigate = useNavigate();
   const [selected, setSelected] = useState<string[]>(user?.preferences ?? []);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const options =
+    catalog.length > 0
+      ? catalog.map((p) => {
+          const local = PREFERENCE_OPTIONS.find((o) => o.id === p.code);
+          return {
+            id: p.code,
+            label: p.displayName,
+            emoji: local?.emoji ?? '✨',
+          };
+        })
+      : PREFERENCE_OPTIONS.map((p) => ({ id: p.id, label: p.label, emoji: p.emoji }));
 
   const toggle = (id: string) => {
     setSelected((prev) =>
@@ -18,15 +34,26 @@ export default function OnboardingPage() {
     );
   };
 
-  const handleComplete = () => {
-    if (selected.length < MIN_SELECTION) return;
-    setPreferences(selected);
+  const saveAndGo = async (codes: string[]) => {
+    setSubmitting(true);
+    setError('');
+    const result = await setPreferences(codes);
+    setSubmitting(false);
+    if (!result.ok) {
+      setError(result.error ?? '취향 저장에 실패했습니다.');
+      return;
+    }
     navigate('/home', { replace: true });
   };
 
+  const handleComplete = () => {
+    if (selected.length < MIN_SELECTION) return;
+    saveAndGo(selected);
+  };
+
   const handleSkip = () => {
-    if (selected.length > 0) setPreferences(selected);
-    navigate('/home', { replace: true });
+    if (selected.length > 0) saveAndGo(selected);
+    else navigate('/home', { replace: true });
   };
 
   return (
@@ -41,17 +68,25 @@ export default function OnboardingPage() {
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {PREFERENCE_OPTIONS.map(({ id, label, emoji }) => (
-          <Chip
-            key={id}
-            label={label}
-            emoji={emoji}
-            selected={selected.includes(id)}
-            onClick={() => toggle(id)}
-          />
-        ))}
-      </div>
+      {catalogLoading ? (
+        <p className="text-sm text-muted">취향 목록 불러오는 중...</p>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {options.map(({ id, label, emoji }) => (
+            <Chip
+              key={id}
+              label={label}
+              emoji={emoji}
+              selected={selected.includes(id)}
+              onClick={() => toggle(id)}
+            />
+          ))}
+        </div>
+      )}
+
+      {error && (
+        <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+      )}
 
       <p className="mt-4 text-center text-sm text-muted">
         <span className="font-semibold text-brand">{selected.length}</span>
@@ -67,12 +102,12 @@ export default function OnboardingPage() {
       <div className="mt-auto flex flex-col gap-3 pt-8">
         <Button
           fullWidth
-          disabled={selected.length < MIN_SELECTION}
+          disabled={selected.length < MIN_SELECTION || submitting}
           onClick={handleComplete}
         >
-          맞춤 추천 시작하기
+          {submitting ? '저장 중...' : '맞춤 추천 시작하기'}
         </Button>
-        <Button variant="ghost" fullWidth onClick={handleSkip}>
+        <Button variant="ghost" fullWidth onClick={handleSkip} disabled={submitting}>
           {selected.length > 0 ? '선택한 취향으로 건너뛰기' : '나중에 할게요'}
         </Button>
       </div>

@@ -1,14 +1,43 @@
-import { calculateRoute } from '../../utils/routeCalculator';
-import { getRestaurantById } from '../../data/dummyRestaurants';
+import { useEffect, useState } from 'react';
+import { getScheduleRouteLegsApi } from '../../api/route';
+import type { RouteLegDto } from '../../api/types';
+import { getCachedRestaurant } from '../../utils/restaurantCache';
 
 type RouteVisualizationProps = {
   restaurantIds: string[];
+  scheduleId?: string;
 };
 
 export default function RouteVisualization({
   restaurantIds,
+  scheduleId,
 }: RouteVisualizationProps) {
-  const route = calculateRoute(restaurantIds);
+  const [legs, setLegs] = useState<RouteLegDto[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!scheduleId || restaurantIds.length < 2) {
+      setLegs([]);
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+    (async () => {
+      try {
+        const data = await getScheduleRouteLegsApi(Number(scheduleId));
+        if (!cancelled) setLegs(data);
+      } catch {
+        if (!cancelled) setLegs([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [scheduleId, restaurantIds.length]);
 
   if (restaurantIds.length < 2) {
     return (
@@ -18,23 +47,39 @@ export default function RouteVisualization({
     );
   }
 
+  const totalDistanceKm = legs.reduce((sum, leg) => sum + leg.distanceKm, 0);
+  const totalWalkMinutes = Math.round(totalDistanceKm * 12);
+
   return (
     <div className="space-y-3">
+      {loading && (
+        <p className="text-center text-xs text-muted">동선 계산 중...</p>
+      )}
+
       <div className="grid grid-cols-2 gap-2 rounded-2xl border border-brand-light bg-brand-soft p-4 text-ink">
         <div className="text-center">
-          <p className="text-2xl font-bold text-brand">{route.totalDistanceKm}</p>
+          <p className="text-2xl font-bold text-brand">
+            {totalDistanceKm > 0 ? totalDistanceKm.toFixed(1) : '—'}
+          </p>
           <p className="text-[10px] text-muted">총 이동 거리 (km)</p>
         </div>
         <div className="text-center">
-          <p className="text-2xl font-bold text-brand">{route.totalWalkMinutes}</p>
+          <p className="text-2xl font-bold text-brand">
+            {totalWalkMinutes > 0 ? totalWalkMinutes : '—'}
+          </p>
           <p className="text-[10px] text-muted">예상 도보 (분)</p>
         </div>
       </div>
 
       <ol className="space-y-0">
         {restaurantIds.map((id, index) => {
-          const restaurant = getRestaurantById(id);
-          const leg = route.legs[index];
+          const restaurant = getCachedRestaurant(id);
+          const leg = legs[index];
+          const fromName =
+            getCachedRestaurant(String(leg?.fromRestaurantId))?.name ?? '';
+          const toName =
+            getCachedRestaurant(String(leg?.toRestaurantId))?.name ?? '';
+
           return (
             <li key={id}>
               <div className="flex gap-3">
@@ -48,9 +93,9 @@ export default function RouteVisualization({
                 </div>
                 <div className="min-w-0 flex-1 pb-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-lg">{restaurant?.imageEmoji}</span>
+                    <span className="text-lg">{restaurant?.imageEmoji ?? '🍽️'}</span>
                     <p className="truncate font-medium text-ink">
-                      {restaurant?.name ?? id}
+                      {restaurant?.name ?? `식당 #${id}`}
                     </p>
                   </div>
                   {restaurant && (
@@ -63,10 +108,13 @@ export default function RouteVisualization({
                 <div className="mb-3 ml-3 flex items-center gap-2 border-l-2 border-dashed border-brand-light pl-6">
                   <span className="text-brand">↓</span>
                   <div className="rounded-xl bg-brand-soft px-3 py-2 text-xs text-ink ring-1 ring-brand-light">
-                    <span className="font-semibold">{leg.distanceKm} km</span>
-                    <span className="text-muted"> · 도보 약 {leg.walkMinutes}분</span>
+                    <span className="font-semibold">{leg.distanceKm.toFixed(1)} km</span>
+                    <span className="text-muted">
+                      {' '}
+                      · 도보 약 {Math.round(leg.distanceKm * 12)}분
+                    </span>
                     <p className="mt-0.5 text-[10px] text-subtle">
-                      {leg.fromName} → {leg.toName}
+                      {fromName} → {toName}
                     </p>
                   </div>
                 </div>

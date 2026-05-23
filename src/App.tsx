@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { PreferenceProvider } from './context/PreferenceContext';
 import { ScheduleProvider } from './context/ScheduleContext';
 import AppLayout from './components/layout/AppLayout';
 import AuthLayout from './components/layout/AuthLayout';
@@ -26,7 +27,14 @@ import ScheduleDetailPage from './pages/Schedule/ScheduleDetailPage';
 import ScheduleEditPage from './pages/Schedule/ScheduleEditPage';
 
 function RootRedirect() {
-  const { isAuthenticated, hasCompletedOnboarding } = useAuth();
+  const { isAuthenticated, hasCompletedOnboarding, isLoading } = useAuth();
+  if (isLoading) {
+    return (
+      <div className="flex min-h-svh items-center justify-center text-sm text-muted">
+        로딩 중...
+      </div>
+    );
+  }
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (!hasCompletedOnboarding) return <Navigate to="/onboarding" replace />;
   return <Navigate to="/home" replace />;
@@ -34,9 +42,10 @@ function RootRedirect() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <ScheduleProvider>
-      <BrowserRouter>
+    <PreferenceProvider>
+      <AuthProvider>
+        <ScheduleProvider>
+          <BrowserRouter>
         <Routes>
           {/* 루트 */}
           <Route path="/" element={<RootRedirect />} />
@@ -154,8 +163,9 @@ export default function App() {
           {/* 404 */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </BrowserRouter>
-      </ScheduleProvider>
-    </AuthProvider>
+          </BrowserRouter>
+        </ScheduleProvider>
+      </AuthProvider>
+    </PreferenceProvider>
   );
 }

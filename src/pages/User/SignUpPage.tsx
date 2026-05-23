@@ -16,11 +16,12 @@ export default function SignUpPage() {
     phone: '',
   });
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const update = (key: keyof typeof form, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -42,12 +43,15 @@ export default function SignUpPage() {
       return;
     }
 
-    const result = signUp({
+    setSubmitting(true);
+    const result = await signUp({
       name: form.name,
       username: form.username,
       password: form.password,
       phone: form.phone,
+      age: 20,
     });
+    setSubmitting(false);
 
     if (!result.ok) {
       setError(result.error ?? '회원가입에 실패했습니다.');
@@ -96,8 +100,8 @@ export default function SignUpPage() {
         {error && (
           <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
         )}
-        <Button type="submit" fullWidth className="mt-auto">
-          가입하기
+        <Button type="submit" fullWidth className="mt-auto" disabled={submitting}>
+          {submitting ? '가입 중...' : '가입하기'}
         </Button>
         <p className="text-center text-sm text-muted">
           이미 계정이 있으신가요?{' '}

@@ -12,8 +12,9 @@ export default function ProfileEditPage() {
   const [phone, setPhone] = useState(user?.phone ?? '');
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSaved(false);
@@ -28,7 +29,15 @@ export default function ProfileEditPage() {
       return;
     }
 
-    updateUser({ name: name.trim(), phone: phone.trim() });
+    setSubmitting(true);
+    const result = await updateUser({ name: name.trim(), phone: phone.trim() });
+    setSubmitting(false);
+
+    if (!result.ok) {
+      setError(result.error ?? '저장에 실패했습니다.');
+      return;
+    }
+
     setSaved(true);
     setTimeout(() => navigate('/profile'), 800);
   };
@@ -59,8 +68,8 @@ export default function ProfileEditPage() {
             저장되었습니다.
           </p>
         )}
-        <Button type="submit" fullWidth className="mt-auto">
-          저장하기
+        <Button type="submit" fullWidth className="mt-auto" disabled={submitting}>
+          {submitting ? '저장 중...' : '저장하기'}
         </Button>
       </form>
     </div>

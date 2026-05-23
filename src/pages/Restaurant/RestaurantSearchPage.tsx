@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import RestaurantCard from '../../components/restaurant/RestaurantCard';
 import RestaurantFilterBar from '../../components/restaurant/RestaurantFilterBar';
 import PageHeader from '../../components/ui/PageHeader';
-import { DUMMY_RESTAURANTS } from '../../data/dummyRestaurants';
+import Chip from '../../components/ui/Chip';
+import { useRestaurantList } from '../../hooks/useRestaurants';
 import {
   DEFAULT_FILTERS,
   filterRestaurants,
@@ -13,6 +14,25 @@ import {
 export default function RestaurantSearchPage() {
   const [filters, setFilters] = useState<RestaurantFilterState>(DEFAULT_FILTERS);
   const [keywordInput, setKeywordInput] = useState('');
+  const [tasteSimilar, setTasteSimilar] = useState(false);
+
+  const apiParams = useMemo(
+    () => ({
+      category: filters.category !== '전체' ? filters.category : undefined,
+      minRating: filters.minRating > 0 ? filters.minRating : undefined,
+      sort:
+        filters.sortBy === 'reviews'
+          ? 'reviewCount,desc'
+          : filters.sortBy === 'distance'
+            ? 'distance,asc'
+            : 'rating,desc',
+      tasteSimilar,
+      size: 50,
+    }),
+    [filters.category, filters.minRating, filters.sortBy, tasteSimilar],
+  );
+
+  const { restaurants: apiRestaurants, loading, error } = useRestaurantList(apiParams);
 
   const updateFilters = (patch: Partial<RestaurantFilterState>) => {
     setFilters((prev) => ({ ...prev, ...patch }));
@@ -23,12 +43,13 @@ export default function RestaurantSearchPage() {
   };
 
   const restaurants = useMemo(
-    () => filterRestaurants(DUMMY_RESTAURANTS, filters),
-    [filters],
+    () => filterRestaurants(apiRestaurants, filters),
+    [apiRestaurants, filters],
   );
 
   const resetFilters = () => {
     setKeywordInput('');
+    setTasteSimilar(false);
     setFilters(DEFAULT_FILTERS);
   };
 
@@ -53,6 +74,15 @@ export default function RestaurantSearchPage() {
           >
             검색
           </button>
+        </div>
+
+        <div>
+          <p className="mb-2 text-xs font-semibold text-muted">추천 필터</p>
+          <Chip
+            label="입맛 비슷한 사용자 맛집"
+            selected={tasteSimilar}
+            onClick={() => setTasteSimilar((v) => !v)}
+          />
         </div>
 
         {filters.keyword && (
@@ -86,8 +116,16 @@ export default function RestaurantSearchPage() {
         </button>
       </div>
 
+      {error && (
+        <p className="mx-4 mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+      )}
+
       <div className="flex flex-col gap-3 px-4">
-        {restaurants.length > 0 ? (
+        {loading ? (
+          <div className="rounded-2xl bg-brand-soft py-12 text-center text-sm text-muted">
+            검색 중...
+          </div>
+        ) : restaurants.length > 0 ? (
           restaurants.map((r) => (
             <RestaurantCard key={r.id} restaurant={r} showMatch={false} />
           ))

@@ -4,7 +4,7 @@ import RestaurantCard from '../../components/restaurant/RestaurantCard';
 import PageHeader from '../../components/ui/PageHeader';
 import Chip from '../../components/ui/Chip';
 import { RESTAURANT_CATEGORIES } from '../../constants/restaurantFilters';
-import { DUMMY_RESTAURANTS } from '../../data/dummyRestaurants';
+import { useRestaurantList } from '../../hooks/useRestaurants';
 import {
   DEFAULT_FILTERS,
   filterRestaurants,
@@ -14,21 +14,32 @@ import {
 export default function RestaurantListPage() {
   const [category, setCategory] = useState<string>('전체');
 
+  const apiParams = useMemo(
+    () => ({
+      sort: 'rating,desc',
+      size: 50,
+    }),
+    [],
+  );
+
+  const { restaurants: apiRestaurants, totalElements, loading, error } =
+    useRestaurantList(apiParams);
+
   const filters: RestaurantFilterState = useMemo(
     () => ({ ...DEFAULT_FILTERS, category, sortBy: 'rating' }),
     [category],
   );
 
   const restaurants = useMemo(
-    () => filterRestaurants(DUMMY_RESTAURANTS, filters),
-    [filters],
+    () => filterRestaurants(apiRestaurants, filters),
+    [apiRestaurants, filters],
   );
 
   return (
     <div className="pb-4">
       <PageHeader
         title="맛집 탐색"
-        subtitle={`총 ${DUMMY_RESTAURANTS.length}곳`}
+        subtitle={loading ? '불러오는 중...' : `총 ${totalElements}곳`}
         action={
           <Link
             to="/restaurants/search"
@@ -52,6 +63,10 @@ export default function RestaurantListPage() {
         </div>
       </div>
 
+      {error && (
+        <p className="mx-4 mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+      )}
+
       <div className="mb-3 flex items-center justify-between px-4">
         <p className="text-sm text-muted">
           <span className="font-bold text-ink">{restaurants.length}</span>개
@@ -66,7 +81,11 @@ export default function RestaurantListPage() {
       </div>
 
       <div className="flex flex-col gap-3 px-4">
-        {restaurants.length > 0 ? (
+        {loading ? (
+          <div className="rounded-2xl bg-brand-soft py-12 text-center text-sm text-muted">
+            맛집 목록을 불러오는 중...
+          </div>
+        ) : restaurants.length > 0 ? (
           restaurants.map((r) => (
             <RestaurantCard key={r.id} restaurant={r} showMatch={false} />
           ))

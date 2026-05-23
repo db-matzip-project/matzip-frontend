@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import MapMock from '../../components/restaurant/MapMock';
+import KakaoRestaurantMap from '../../components/restaurant/KakaoRestaurantMap';
 import PageHeader from '../../components/ui/PageHeader';
-import { DUMMY_RESTAURANTS } from '../../data/dummyRestaurants';
 import {
   DEFAULT_FILTERS,
   filterRestaurants,
@@ -10,6 +9,7 @@ import {
 } from '../../utils/filterRestaurants';
 import Chip from '../../components/ui/Chip';
 import { RESTAURANT_CATEGORIES } from '../../constants/restaurantFilters';
+import { useRestaurantList } from '../../hooks/useRestaurants';
 
 type MapLocationState = { selectedId?: string };
 
@@ -20,35 +20,42 @@ export default function RestaurantMapPage() {
   const [selectedId, setSelectedId] = useState<string | undefined>(initialId);
   const [category, setCategory] = useState<string>('전체');
 
+  // 지도는 전체 목록을 받아 프론트에서 카테고리 매칭 (API category 값 형식이 제각각일 수 있음)
+  const { restaurants: apiRestaurants, loading, error } = useRestaurantList({
+    size: 50,
+    sort: 'rating,desc',
+  });
+
   const filters: RestaurantFilterState = useMemo(
     () => ({ ...DEFAULT_FILTERS, category }),
     [category],
   );
 
   const restaurants = useMemo(
-    () => filterRestaurants(DUMMY_RESTAURANTS, filters),
-    [filters],
+    () => filterRestaurants(apiRestaurants, filters),
+    [apiRestaurants, filters],
   );
 
-  const selected = useMemo(() => {
-    if (selectedId) {
-      const found = restaurants.find((r) => r.id === selectedId);
-      if (found) return found;
-    }
-    return restaurants[0];
-  }, [restaurants, selectedId]);
+  const selected = useMemo(
+    () => (selectedId ? restaurants.find((r) => r.id === selectedId) : undefined),
+    [restaurants, selectedId],
+  );
 
   useEffect(() => {
     if (selectedId && !restaurants.some((r) => r.id === selectedId)) {
-      setSelectedId(restaurants[0]?.id);
+      setSelectedId(undefined);
     }
   }, [restaurants, selectedId]);
+
+  const handleCategoryChange = (cat: string) => {
+    setCategory(cat);
+    setSelectedId(undefined);
+  };
 
   return (
     <div className="pb-4">
       <PageHeader title="지도 탐색" subtitle="주변 맛집 위치" />
 
-      {/* 카테고리 + 필터 (헤더와 분리) */}
       <div className="border-b border-brand-light bg-surface px-4 py-3">
         <div className="mb-2 flex items-center justify-between">
           <span className="text-xs font-medium text-muted">카테고리</span>
@@ -65,32 +72,37 @@ export default function RestaurantMapPage() {
               key={cat}
               label={cat}
               selected={category === cat}
-              onClick={() => {
-                setCategory(cat);
-                setSelectedId(undefined);
-              }}
+              onClick={() => handleCategoryChange(cat)}
             />
           ))}
         </div>
       </div>
 
-      {/* 지도 */}
+      {error && (
+        <p className="mx-4 mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+      )}
+
       <div className="bg-cream px-4 py-4">
-        <MapMock
-          restaurants={restaurants}
-          selectedId={selected?.id}
-          onSelect={setSelectedId}
-          className="h-52 w-full"
-        />
+        {loading ? (
+          <div className="flex h-52 items-center justify-center rounded-2xl bg-brand-soft text-sm text-muted">
+            맛집 목록 불러오는 중...
+          </div>
+        ) : (
+          <KakaoRestaurantMap
+            restaurants={restaurants}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+            className="relative h-64 w-full"
+          />
+        )}
         <p className="mt-2 text-center text-[10px] text-subtle">
-          카카오/구글 맵 API 연동 전 · 더미 지도 UI
+          마커를 탭하면 상세를 볼 수 있어요 · 카카오맵
         </p>
       </div>
 
-      {/* 주변 맛집 리스트 */}
       <div className="mx-4 rounded-2xl border border-brand-light bg-surface px-4 py-4">
         <h2 className="mb-3 text-sm font-bold text-ink">
-          주변 맛집 ({restaurants.length})
+          {category === '전체' ? '주변 맛집' : `${category} 맛집`} ({restaurants.length})
         </h2>
 
         {selected && (
@@ -104,7 +116,7 @@ export default function RestaurantMapPage() {
               <div className="min-w-0 flex-1">
                 <p className="font-bold text-ink">{selected.name}</p>
                 <p className="text-xs text-muted">
-                  {selected.category} · ★ {selected.rating} · {selected.distance}
+                  {selected.category} · ★ {selected.rating ?? 0}
                 </p>
                 <p className="mt-1 truncate text-xs font-medium text-brand">
                   탭하여 상세 보기 →
@@ -112,6 +124,12 @@ export default function RestaurantMapPage() {
               </div>
             </div>
           </button>
+        )}
+
+        {!selectedId && restaurants.length > 0 && (
+          <p className="mb-3 text-center text-xs text-muted">
+            목록이나 지도 마커를 선택해 주세요
+          </p>
         )}
 
         <ul className="max-h-44 space-y-1.5 overflow-y-auto">
@@ -127,16 +145,24 @@ export default function RestaurantMapPage() {
                 }`}
               >
                 <span className="text-xl">{r.imageEmoji}</span>
-                <span className="min-w-0 flex-1 truncate text-ink">{r.name}</span>
-                <span className="shrink-0 text-xs text-subtle">{r.distance}</span>
+                <div className="min-w-0 flex-1">
+                  <span className="block truncate text-ink">{r.name}</span>
+                  <span className="block truncate text-[10px] text-subtle">
+                    {r.category}
+                  </span>
+                </div>
               </button>
             </li>
           ))}
         </ul>
 
-        {restaurants.length === 0 && (
+        {!loading && restaurants.length === 0 && (
           <p className="py-6 text-center text-sm text-muted">
-            이 카테고리에 표시할 식당이 없습니다.
+            이 카테고리에 맞는 식당이 없습니다.
+            <br />
+            <span className="text-xs text-subtle">
+              (백엔드 category 값이 「한식」 등과 다를 수 있습니다)
+            </span>
           </p>
         )}
       </div>

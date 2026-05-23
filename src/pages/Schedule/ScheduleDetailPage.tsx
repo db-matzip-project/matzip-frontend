@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import RestaurantPicker from '../../components/schedule/RestaurantPicker';
 import RouteVisualization from '../../components/schedule/RouteVisualization';
@@ -12,15 +12,40 @@ export default function ScheduleDetailPage() {
   const navigate = useNavigate();
   const {
     getSchedule,
+    fetchScheduleDetail,
     deleteSchedule,
     addRestaurant,
     removeRestaurant,
     reorderRestaurants,
   } = useSchedules();
 
-  const schedule = id ? getSchedule(id) : undefined;
+  const [loading, setLoading] = useState(true);
   const [showPicker, setShowPicker] = useState(false);
   const [pickerSelection, setPickerSelection] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
+
+  const schedule = id ? getSchedule(id) : undefined;
+
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      await fetchScheduleDetail(id);
+      if (!cancelled) setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [id, fetchScheduleDetail]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center text-sm text-muted">
+        일정을 불러오는 중...
+      </div>
+    );
+  }
 
   if (!schedule) {
     return (
@@ -31,25 +56,55 @@ export default function ScheduleDetailPage() {
     );
   }
 
-  const handleDelete = () => {
-    if (window.confirm(`"${schedule.title}" 일정을 삭제할까요?`)) {
-      deleteSchedule(schedule.id);
+  const handleDelete = async () => {
+    if (!window.confirm(`"${schedule.title}" 일정을 삭제할까요?`)) return;
+    setBusy(true);
+    try {
+      await deleteSchedule(schedule.id);
       navigate('/schedules', { replace: true });
+    } finally {
+      setBusy(false);
     }
   };
 
   const togglePickerItem = (restaurantId: string) => {
     setPickerSelection((prev) =>
       prev.includes(restaurantId)
-        ? prev.filter((id) => id !== restaurantId)
+        ? prev.filter((rid) => rid !== restaurantId)
         : [...prev, restaurantId],
     );
   };
 
-  const handleAddRestaurants = () => {
-    pickerSelection.forEach((rid) => addRestaurant(schedule.id, rid));
-    setPickerSelection([]);
-    setShowPicker(false);
+  const handleAddRestaurants = async () => {
+    setBusy(true);
+    try {
+      for (const rid of pickerSelection) {
+        await addRestaurant(schedule.id, rid);
+      }
+      setPickerSelection([]);
+      setShowPicker(false);
+      await fetchScheduleDetail(schedule.id);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleReorder = async (ids: string[]) => {
+    setBusy(true);
+    try {
+      await reorderRestaurants(schedule.id, ids);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleRemove = async (rid: string) => {
+    setBusy(true);
+    try {
+      await removeRestaurant(schedule.id, rid);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -69,13 +124,6 @@ export default function ScheduleDetailPage() {
       />
 
       <div className="space-y-6 px-4 py-4">
-        {schedule.memo && (
-          <p className="rounded-xl bg-brand-soft px-4 py-3 text-sm text-muted">
-            {schedule.memo}
-          </p>
-        )}
-
-        {/* 방문 순서 (DnD) */}
         <section>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-bold text-ink">
@@ -85,6 +133,7 @@ export default function ScheduleDetailPage() {
               type="button"
               onClick={() => setShowPicker((v) => !v)}
               className="text-xs font-medium text-brand"
+              disabled={busy}
             >
               {showPicker ? '닫기' : '+ 식당 추가'}
             </button>
@@ -92,8 +141,8 @@ export default function ScheduleDetailPage() {
 
           <SortableStopList
             restaurantIds={schedule.restaurantIds}
-            onReorder={(ids) => reorderRestaurants(schedule.id, ids)}
-            onRemove={(rid) => removeRestaurant(schedule.id, rid)}
+            onReorder={handleReorder}
+            onRemove={handleRemove}
           />
         </section>
 
@@ -108,7 +157,7 @@ export default function ScheduleDetailPage() {
             <Button
               fullWidth
               className="mt-3"
-              disabled={pickerSelection.length === 0}
+              disabled={pickerSelection.length === 0 || busy}
               onClick={handleAddRestaurants}
             >
               {pickerSelection.length}곳 추가
@@ -116,18 +165,16 @@ export default function ScheduleDetailPage() {
           </section>
         )}
 
-        {/* 이동 동선 */}
         <section>
           <h2 className="mb-3 text-sm font-bold text-ink">이동 동선 · 예상 거리</h2>
-          <RouteVisualization restaurantIds={schedule.restaurantIds} />
+          <RouteVisualization
+            restaurantIds={schedule.restaurantIds}
+            scheduleId={schedule.id}
+          />
         </section>
 
         <div className="flex gap-3 pt-2">
-          <Button
-            variant="danger"
-            fullWidth
-            onClick={handleDelete}
-          >
+          <Button variant="danger" fullWidth onClick={handleDelete} disabled={busy}>
             일정 삭제
           </Button>
         </div>

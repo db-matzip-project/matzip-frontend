@@ -1,13 +1,31 @@
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import RestaurantCard from '../../components/restaurant/RestaurantCard';
 import PageHeader from '../../components/ui/PageHeader';
 import { PREFERENCE_LABELS } from '../../constants/preferences';
 import { useAuth } from '../../context/AuthContext';
-import { getRecommendations } from '../../utils/recommendations';
+import { usePreferences } from '../../context/PreferenceContext';
+import { useRestaurantList } from '../../hooks/useRestaurants';
+import { buildRecommendations } from '../../utils/recommendations';
 
 export default function HomePage() {
   const { user } = useAuth();
-  const recommendations = getRecommendations(user?.preferences ?? [], 6);
+  const { catalog } = usePreferences();
+  const { restaurants, loading, error } = useRestaurantList({
+    tasteSimilar: true,
+    size: 30,
+    sort: 'rating',
+  });
+
+  const recommendations = useMemo(
+    () => buildRecommendations(restaurants, user?.preferences ?? [], 6),
+    [restaurants, user?.preferences],
+  );
+
+  const labelForPref = (code: string) => {
+    const fromCatalog = catalog.find((p) => p.code === code)?.displayName;
+    return fromCatalog ?? PREFERENCE_LABELS[code] ?? code;
+  };
 
   return (
     <div className="pb-4">
@@ -32,7 +50,7 @@ export default function HomePage() {
               key={pref}
               className="rounded-full bg-brand-soft px-2.5 py-1 text-xs font-medium text-brand"
             >
-              {PREFERENCE_LABELS[pref] ?? pref}
+              {labelForPref(pref)}
             </span>
           ))}
         </div>
@@ -43,7 +61,7 @@ export default function HomePage() {
           <div>
             <h2 className="text-base font-bold text-ink">나를 위한 맞춤 추천</h2>
             <p className="text-xs text-muted">
-              취향 일치도 순 · 총 {recommendations.length}곳
+              취향·유사 사용자 기반 · 총 {recommendations.length}곳
             </p>
           </div>
           <Link to="/restaurants" className="text-xs font-medium text-brand">
@@ -51,30 +69,47 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <div className="mb-4 grid grid-cols-3 gap-2 rounded-2xl border border-brand-light bg-brand-soft p-4">
-          <div className="text-center">
-            <p className="text-2xl font-bold text-brand">{recommendations.length}</p>
-            <p className="text-[10px] text-muted">추천 맛집</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-brand">
-              {recommendations[0]?.matchScore ?? 0}%
-            </p>
-            <p className="text-[10px] text-muted">최고 일치도</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-brand">
-              {user?.preferences.length ?? 0}
-            </p>
-            <p className="text-[10px] text-muted">선택 취향</p>
-          </div>
-        </div>
+        {loading && (
+          <p className="py-8 text-center text-sm text-muted">맛집 불러오는 중...</p>
+        )}
+        {error && (
+          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+        )}
 
-        <div className="flex flex-col gap-3">
-          {recommendations.map((restaurant) => (
-            <RestaurantCard key={restaurant.id} restaurant={restaurant} />
-          ))}
-        </div>
+        {!loading && !error && (
+          <>
+            <div className="mb-4 grid grid-cols-3 gap-2 rounded-2xl border border-brand-light bg-brand-soft p-4">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-brand">{recommendations.length}</p>
+                <p className="text-[10px] text-muted">추천 맛집</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-brand">
+                  {recommendations[0]?.matchScore ?? 0}%
+                </p>
+                <p className="text-[10px] text-muted">최고 일치도</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-brand">
+                  {user?.preferences.length ?? 0}
+                </p>
+                <p className="text-[10px] text-muted">선택 취향</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              {recommendations.length > 0 ? (
+                recommendations.map((restaurant) => (
+                  <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+                ))
+              ) : (
+                <div className="rounded-2xl bg-brand-soft py-8 text-center text-sm text-muted">
+                  추천할 맛집이 없습니다. 취향을 설정하거나 맛집 목록을 확인해 보세요.
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </section>
 
       <section className="mt-2 px-4">

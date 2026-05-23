@@ -10,21 +10,27 @@ export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     if (!username.trim() || !password) {
       setError('아이디와 비밀번호를 입력해 주세요.');
       return;
     }
-    const loggedIn = login(username, password);
-    if (!loggedIn) {
-      setError('아이디 또는 비밀번호가 올바르지 않습니다.');
+
+    setSubmitting(true);
+    const result = await login(username, password);
+    setSubmitting(false);
+
+    if (!result.ok || !result.user) {
+      setError(result.error ?? '아이디 또는 비밀번호가 올바르지 않습니다.');
       return;
     }
+
     navigate(
-      loggedIn.preferences.length > 0 ? '/home' : '/onboarding',
+      result.user.preferences.length > 0 ? '/home' : '/onboarding',
       { replace: true },
     );
   };
@@ -54,23 +60,18 @@ export default function LoginPage() {
             {error}
           </p>
         )}
-        <Button type="submit" fullWidth className="mt-2">
-          로그인
+        <Button type="submit" fullWidth className="mt-2" disabled={submitting}>
+          {submitting ? '로그인 중...' : '로그인'}
         </Button>
       </form>
 
-      <div className="mt-6 space-y-4 text-center text-sm">
+      <div className="mt-6 text-center text-sm">
         <p className="text-muted">
           계정이 없으신가요?{' '}
           <Link to="/signup" className="font-semibold text-brand">
             회원가입
           </Link>
         </p>
-        <div className="rounded-xl border border-brand-light bg-brand-soft px-4 py-3 text-left text-xs text-muted">
-          <p className="font-medium text-ink">테스트 계정</p>
-          <p className="mt-1">demo / demo1234 (취향 설정 완료)</p>
-          <p>newuser / pass1234 (온보딩 필요)</p>
-        </div>
       </div>
     </div>
   );

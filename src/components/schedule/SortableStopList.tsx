@@ -15,7 +15,7 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { getRestaurantById } from '../../data/dummyRestaurants';
+import { getCachedRestaurant } from '../../utils/restaurantCache';
 
 type SortableStopListProps = {
   restaurantIds: string[];
@@ -32,7 +32,7 @@ function SortableStopItem({
   order: number;
   onRemove: () => void;
 }) {
-  const restaurant = getRestaurantById(id);
+  const restaurant = getCachedRestaurant(id);
   const {
     attributes,
     listeners,
@@ -47,7 +47,13 @@ function SortableStopItem({
     transition,
   };
 
-  if (!restaurant) return null;
+  if (!restaurant) {
+    return (
+      <li className="rounded-2xl border border-brand-light bg-brand-soft p-3 text-sm text-muted">
+        식당 #{id} (정보 로딩 중)
+      </li>
+    );
+  }
 
   return (
     <li

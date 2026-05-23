@@ -1,4 +1,4 @@
-import { DUMMY_RESTAURANTS } from '../../data/dummyRestaurants';
+import { useRestaurantList } from '../../hooks/useRestaurants';
 
 type RestaurantPickerProps = {
   selectedIds: string[];
@@ -11,7 +11,16 @@ export default function RestaurantPicker({
   onToggle,
   excludeIds = [],
 }: RestaurantPickerProps) {
-  const available = DUMMY_RESTAURANTS.filter((r) => !excludeIds.includes(r.id));
+  const { restaurants, loading, error } = useRestaurantList({ size: 50, sort: 'rating,desc' });
+  const available = restaurants.filter((r) => !excludeIds.includes(r.id));
+
+  if (loading) {
+    return <p className="py-4 text-center text-sm text-muted">식당 목록 불러오는 중...</p>;
+  }
+
+  if (error) {
+    return <p className="py-4 text-center text-sm text-red-600">{error}</p>;
+  }
 
   return (
     <ul className="max-h-64 space-y-2 overflow-y-auto">
@@ -48,6 +57,9 @@ export default function RestaurantPicker({
           </li>
         );
       })}
+      {available.length === 0 && (
+        <p className="py-4 text-center text-sm text-muted">추가할 수 있는 식당이 없습니다.</p>
+      )}
     </ul>
   );
 }

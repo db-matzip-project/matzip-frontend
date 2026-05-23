@@ -16,6 +16,7 @@ export default function BottomNav() {
           <li key={to} className="flex-1">
             <NavLink
               to={to}
+              end={to === '/restaurants'}
               className={({ isActive }) =>
                 `flex flex-col items-center gap-0.5 rounded-2xl px-2 py-1.5 text-xs transition-colors duration-200 ${
                   isActive

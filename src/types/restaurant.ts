@@ -14,6 +14,8 @@ export type Restaurant = {
   mapPosition: { x: number; y: number };
   openHours: string;
   phone: string;
+  latitude?: number;
+  longitude?: number;
 };
 
 export type RecommendedRestaurant = Restaurant & {

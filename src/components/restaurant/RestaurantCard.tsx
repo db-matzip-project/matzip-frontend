@@ -41,9 +41,9 @@ export default function RestaurantCard({
           {restaurant.distance}
         </p>
         <div className="flex items-center gap-1 text-xs">
-          <span className="font-semibold text-brand">★ {restaurant.rating}</span>
+          <span className="font-semibold text-brand">★ {restaurant.rating ?? 0}</span>
           <span className="text-subtle">
-            ({restaurant.reviewCount.toLocaleString()})
+            ({(restaurant.reviewCount ?? 0).toLocaleString()})
           </span>
         </div>
         {(restaurant.matchReasons?.length ?? 0) > 0 && (

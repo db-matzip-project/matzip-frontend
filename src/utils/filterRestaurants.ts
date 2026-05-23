@@ -1,4 +1,5 @@
 import type { Restaurant } from '../types/restaurant';
+import { matchesRestaurantCategory } from './restaurantCategory';
 
 export type RestaurantFilterState = {
   category: string;
@@ -31,7 +32,7 @@ export function filterRestaurants(
   const keyword = filters.keyword.trim().toLowerCase();
 
   let result = restaurants.filter((r) => {
-    if (filters.category !== '전체' && r.category !== filters.category) return false;
+    if (!matchesRestaurantCategory(r.category, filters.category)) return false;
     if (filters.minRating > 0 && r.rating < filters.minRating) return false;
     if (filters.priceRange > 0 && r.priceRange !== filters.priceRange) return false;
     if (keyword) {

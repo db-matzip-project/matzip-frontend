@@ -24,6 +24,7 @@ export default function ScheduleCreatePage() {
     preselectedId ? [preselectedId] : [],
   );
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const toggleRestaurant = (id: string) => {
     setSelectedIds((prev) =>
@@ -31,7 +32,7 @@ export default function ScheduleCreatePage() {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -44,13 +45,20 @@ export default function ScheduleCreatePage() {
       return;
     }
 
-    const schedule = createSchedule({
-      title,
-      date,
-      memo,
-      restaurantIds: selectedIds,
-    });
-    navigate(`/schedules/${schedule.id}`, { replace: true });
+    setSubmitting(true);
+    try {
+      const schedule = await createSchedule({
+        title,
+        date,
+        memo,
+        restaurantIds: selectedIds,
+      });
+      navigate(`/schedules/${schedule.id}`, { replace: true });
+    } catch {
+      setError('일정 생성에 실패했습니다.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -75,7 +83,7 @@ export default function ScheduleCreatePage() {
           <textarea
             value={memo}
             onChange={(e) => setMemo(e.target.value)}
-            placeholder="시간, 동행자 등 메모"
+            placeholder="첫 번째 식당 메모로 저장됩니다"
             rows={2}
             className="w-full resize-none rounded-xl border border-brand-light bg-brand-soft px-4 py-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand-light"
           />
@@ -107,8 +115,8 @@ export default function ScheduleCreatePage() {
           <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
         )}
 
-        <Button type="submit" fullWidth>
-          일정 생성
+        <Button type="submit" fullWidth disabled={submitting}>
+          {submitting ? '생성 중...' : '일정 생성'}
         </Button>
       </form>
     </div>

@@ -3,14 +3,21 @@ import Button from '../../components/ui/Button';
 import PageHeader from '../../components/ui/PageHeader';
 import { PREFERENCE_LABELS } from '../../constants/preferences';
 import { useAuth } from '../../context/AuthContext';
+import { usePreferences } from '../../context/PreferenceContext';
 
 export default function ProfilePage() {
   const { user, logout, hasCompletedOnboarding } = useAuth();
+  const { catalog } = usePreferences();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/login', { replace: true });
+  };
+
+  const labelForPref = (code: string) => {
+    const fromCatalog = catalog.find((p) => p.code === code)?.displayName;
+    return fromCatalog ?? PREFERENCE_LABELS[code] ?? code;
   };
 
   if (!user) return null;
@@ -52,7 +59,7 @@ export default function ProfilePage() {
                   key={pref}
                   className="rounded-full bg-brand-soft px-2.5 py-1 text-xs font-medium text-brand"
                 >
-                  {PREFERENCE_LABELS[pref] ?? pref}
+                  {labelForPref(pref)}
                 </span>
               ))}
             </div>

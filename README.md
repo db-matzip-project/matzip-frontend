@@ -88,9 +88,20 @@ cd matzip-frontend
 # 의존성 설치
 npm install
 
+# API 서버 URL 설정 (.env.example 참고)
+cp .env.example .env
+
 # 개발 서버 실행
 npm run dev
 ```
+
+### 환경 변수
+
+| 변수 | 설명 |
+|------|------|
+| `VITE_API_BASE_URL` | 백엔드 API 베이스 URL (ngrok 등) |
+
+로그인 후 `accessToken`을 `Authorization: Bearer {accessToken}` 형식으로 전송합니다.
 
 브라우저에서 터미널에 표시된 주소(기본: `http://localhost:5173`)로 접속합니다.
 
@@ -132,4 +143,4 @@ src/
 
 ## 개발 현황
 
-현재 프론트엔드는 **User · Restaurant · Schedule** 3개 도메인 UI를 구현한 상태이며, API 연동 전 단계에서는 더미 데이터로 화면을 확인할 수 있습니다.
+**User · Restaurant · Schedule** 3개 도메인 UI가 백엔드 REST API(`/api/v1/*`)와 연동되어 있습니다. 인증, 취향, 식당 조회, 일정 CRUD, 동선(거리) API를 사용합니다.

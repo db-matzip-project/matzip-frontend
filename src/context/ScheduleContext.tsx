@@ -7,11 +7,20 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { DEMO_SCHEDULE_SEEDS } from '../data/dummySchedules';
+import { getApiErrorMessage } from '../api/client';
+import {
+  addScheduleItemApi,
+  createScheduleApi,
+  deleteScheduleApi,
+  getScheduleByIdApi,
+  getSchedulesApi,
+  removeScheduleItemApi,
+  reorderScheduleItemsApi,
+  updateScheduleApi,
+} from '../api/schedules';
+import { mapScheduleDetail, mapScheduleListItem } from '../mappers/schedule';
 import type { Schedule } from '../types/schedule';
 import { useAuth } from './AuthContext';
-
-const SCHEDULES_KEY = 'matzip_schedules';
 
 type CreateScheduleInput = {
   title: string;
@@ -26,150 +35,197 @@ type UpdateScheduleInput = Partial<
 
 type ScheduleContextValue = {
   schedules: Schedule[];
+  loading: boolean;
+  error: string | null;
   getSchedule: (id: string) => Schedule | undefined;
-  createSchedule: (input: CreateScheduleInput) => Schedule;
-  updateSchedule: (id: string, patch: UpdateScheduleInput) => void;
-  deleteSchedule: (id: string) => void;
-  addRestaurant: (scheduleId: string, restaurantId: string) => void;
-  removeRestaurant: (scheduleId: string, restaurantId: string) => void;
-  reorderRestaurants: (scheduleId: string, restaurantIds: string[]) => void;
+  fetchScheduleDetail: (id: string) => Promise<Schedule | null>;
+  createSchedule: (input: CreateScheduleInput) => Promise<Schedule>;
+  updateSchedule: (id: string, patch: UpdateScheduleInput) => Promise<void>;
+  deleteSchedule: (id: string) => Promise<void>;
+  addRestaurant: (scheduleId: string, restaurantId: string, memo?: string) => Promise<void>;
+  removeRestaurant: (scheduleId: string, restaurantId: string) => Promise<void>;
+  reorderRestaurants: (scheduleId: string, restaurantIds: string[]) => Promise<void>;
+  refreshSchedules: () => Promise<void>;
 };
 
 const ScheduleContext = createContext<ScheduleContextValue | null>(null);
 
-function loadAllSchedules(): Schedule[] {
-  try {
-    const stored = localStorage.getItem(SCHEDULES_KEY);
-    return stored ? (JSON.parse(stored) as Schedule[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveAllSchedules(schedules: Schedule[]) {
-  localStorage.setItem(SCHEDULES_KEY, JSON.stringify(schedules));
-}
-
-function seedForUser(userId: string, existing: Schedule[]): Schedule[] {
-  const hasSeeds = existing.some(
-    (s) => s.userId === userId && DEMO_SCHEDULE_SEEDS.some((d) => d.id === s.id),
-  );
-  if (hasSeeds) return existing;
-
-  const seeds = DEMO_SCHEDULE_SEEDS.map((seed) => ({
-    ...seed,
-    userId,
-  }));
-  return [...existing, ...seeds];
-}
-
 export function ScheduleProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
-  const [allSchedules, setAllSchedules] = useState<Schedule[]>(loadAllSchedules);
+  const { isAuthenticated } = useAuth();
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [scheduleDetails, setScheduleDetails] = useState<Record<string, Schedule>>({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const refreshSchedules = useCallback(async () => {
+    if (!isAuthenticated) {
+      setSchedules([]);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const list = await getSchedulesApi();
+      setSchedules(
+        list
+          .map(mapScheduleListItem)
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+      );
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
-    saveAllSchedules(allSchedules);
-  }, [allSchedules]);
+    refreshSchedules();
+  }, [refreshSchedules]);
 
-  useEffect(() => {
-    if (!user) return;
-    setAllSchedules((prev) => seedForUser(user.id, prev));
-  }, [user?.id]);
-
-  const schedules = useMemo(
-    () =>
-      user
-        ? [...allSchedules.filter((s) => s.userId === user.id)].sort(
-            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-          )
-        : [],
-    [allSchedules, user],
-  );
+  const fetchScheduleDetail = useCallback(async (id: string): Promise<Schedule | null> => {
+    try {
+      const detail = await getScheduleByIdApi(Number(id));
+      const mapped = mapScheduleDetail(detail);
+      setScheduleDetails((prev) => ({ ...prev, [id]: mapped }));
+      setSchedules((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, ...mapped, itemCount: mapped.restaurantIds.length } : s)),
+      );
+      return mapped;
+    } catch {
+      return null;
+    }
+  }, []);
 
   const getSchedule = useCallback(
-    (id: string) => schedules.find((s) => s.id === id),
-    [schedules],
+    (id: string) => scheduleDetails[id] ?? schedules.find((s) => s.id === id),
+    [scheduleDetails, schedules],
   );
 
-  const createSchedule = useCallback(
-    (input: CreateScheduleInput): Schedule => {
-      if (!user) throw new Error('로그인이 필요합니다.');
-      const now = new Date().toISOString();
-      const schedule: Schedule = {
-        id: `sch-${Date.now()}`,
-        userId: user.id,
+  const createSchedule = useCallback(async (input: CreateScheduleInput): Promise<Schedule> => {
+    let schedule = mapScheduleDetail(
+      await createScheduleApi({
         title: input.title.trim(),
-        date: input.date,
-        memo: input.memo?.trim() ?? '',
-        restaurantIds: input.restaurantIds ?? [],
-        createdAt: now,
-        updatedAt: now,
-      };
-      setAllSchedules((prev) => [...prev, schedule]);
-      return schedule;
-    },
-    [user],
-  );
-
-  const updateSchedule = useCallback((id: string, patch: UpdateScheduleInput) => {
-    setAllSchedules((prev) =>
-      prev.map((s) =>
-        s.id === id
-          ? {
-              ...s,
-              ...patch,
-              title: patch.title?.trim() ?? s.title,
-              memo: patch.memo !== undefined ? patch.memo.trim() : s.memo,
-              updatedAt: new Date().toISOString(),
-            }
-          : s,
-      ),
-    );
-  }, []);
-
-  const deleteSchedule = useCallback((id: string) => {
-    setAllSchedules((prev) => prev.filter((s) => s.id !== id));
-  }, []);
-
-  const addRestaurant = useCallback((scheduleId: string, restaurantId: string) => {
-    setAllSchedules((prev) =>
-      prev.map((s) => {
-        if (s.id !== scheduleId || s.restaurantIds.includes(restaurantId)) return s;
-        return {
-          ...s,
-          restaurantIds: [...s.restaurantIds, restaurantId],
-          updatedAt: new Date().toISOString(),
-        };
+        travelDate: input.date,
       }),
     );
+
+    for (const [index, restaurantId] of (input.restaurantIds ?? []).entries()) {
+      schedule = mapScheduleDetail(
+        await addScheduleItemApi(Number(schedule.id), {
+          restaurantId: Number(restaurantId),
+          memo: index === 0 ? input.memo?.trim() || undefined : undefined,
+        }),
+      );
+    }
+
+    setScheduleDetails((prev) => ({ ...prev, [schedule.id]: schedule }));
+    setSchedules((prev) => [schedule, ...prev]);
+    return schedule;
   }, []);
 
-  const removeRestaurant = useCallback(
-    (scheduleId: string, restaurantId: string) => {
-      setAllSchedules((prev) =>
-        prev.map((s) =>
-          s.id === scheduleId
-            ? {
-                ...s,
-                restaurantIds: s.restaurantIds.filter((id) => id !== restaurantId),
-                updatedAt: new Date().toISOString(),
-              }
-            : s,
-        ),
+  const updateSchedule = useCallback(async (id: string, patch: UpdateScheduleInput) => {
+    const current = scheduleDetails[id] ?? schedules.find((s) => s.id === id);
+    if (!current) return;
+
+    if (patch.title !== undefined || patch.date !== undefined) {
+      const updated = mapScheduleDetail(
+        await updateScheduleApi(Number(id), {
+          title: patch.title?.trim(),
+          travelDate: patch.date,
+        }),
       );
+      setScheduleDetails((prev) => ({
+        ...prev,
+        [id]: { ...prev[id], ...updated, restaurantIds: current.restaurantIds, items: current.items },
+      }));
+    }
+
+    if (patch.restaurantIds) {
+      const currentIds = new Set(current.restaurantIds);
+      const nextIds = patch.restaurantIds;
+      const toAdd = nextIds.filter((rid) => !currentIds.has(rid));
+      const toRemove = current.restaurantIds.filter((rid) => !nextIds.includes(rid));
+
+      let detail = current.items.length
+        ? mapScheduleDetail(await getScheduleByIdApi(Number(id)))
+        : current;
+
+      for (const rid of toRemove) {
+        const item = detail.items.find((i) => i.restaurantId === rid);
+        if (item) {
+          detail = mapScheduleDetail(
+            await removeScheduleItemApi(Number(id), item.itemId),
+          );
+        }
+      }
+
+      for (const rid of toAdd) {
+        detail = mapScheduleDetail(
+          await addScheduleItemApi(Number(id), { restaurantId: Number(rid) }),
+        );
+      }
+
+      if (nextIds.length > 0) {
+        detail = mapScheduleDetail(
+          await reorderScheduleItemsApi(Number(id), {
+            orderedRestaurantIds: nextIds.map(Number),
+          }),
+        );
+      }
+
+      setScheduleDetails((prev) => ({ ...prev, [id]: detail }));
+      setSchedules((prev) => prev.map((s) => (s.id === id ? detail : s)));
+    }
+  }, [scheduleDetails, schedules]);
+
+  const deleteSchedule = useCallback(async (id: string) => {
+    await deleteScheduleApi(Number(id));
+    setSchedules((prev) => prev.filter((s) => s.id !== id));
+    setScheduleDetails((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  }, []);
+
+  const addRestaurant = useCallback(
+    async (scheduleId: string, restaurantId: string, memo?: string) => {
+      const detail = mapScheduleDetail(
+        await addScheduleItemApi(Number(scheduleId), {
+          restaurantId: Number(restaurantId),
+          memo,
+        }),
+      );
+      setScheduleDetails((prev) => ({ ...prev, [scheduleId]: detail }));
+      setSchedules((prev) => prev.map((s) => (s.id === scheduleId ? detail : s)));
     },
     [],
   );
 
-  const reorderRestaurants = useCallback(
-    (scheduleId: string, restaurantIds: string[]) => {
-      setAllSchedules((prev) =>
-        prev.map((s) =>
-          s.id === scheduleId
-            ? { ...s, restaurantIds, updatedAt: new Date().toISOString() }
-            : s,
-        ),
+  const removeRestaurant = useCallback(
+    async (scheduleId: string, restaurantId: string) => {
+      const current = scheduleDetails[scheduleId] ?? schedules.find((s) => s.id === scheduleId);
+      const item = current?.items.find((i) => i.restaurantId === restaurantId);
+      if (!item) return;
+
+      const detail = mapScheduleDetail(
+        await removeScheduleItemApi(Number(scheduleId), item.itemId),
       );
+      setScheduleDetails((prev) => ({ ...prev, [scheduleId]: detail }));
+      setSchedules((prev) => prev.map((s) => (s.id === scheduleId ? detail : s)));
+    },
+    [scheduleDetails, schedules],
+  );
+
+  const reorderRestaurants = useCallback(
+    async (scheduleId: string, restaurantIds: string[]) => {
+      const detail = mapScheduleDetail(
+        await reorderScheduleItemsApi(Number(scheduleId), {
+          orderedRestaurantIds: restaurantIds.map(Number),
+        }),
+      );
+      setScheduleDetails((prev) => ({ ...prev, [scheduleId]: detail }));
+      setSchedules((prev) => prev.map((s) => (s.id === scheduleId ? detail : s)));
     },
     [],
   );
@@ -177,23 +233,31 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       schedules,
+      loading,
+      error,
       getSchedule,
+      fetchScheduleDetail,
       createSchedule,
       updateSchedule,
       deleteSchedule,
       addRestaurant,
       removeRestaurant,
       reorderRestaurants,
+      refreshSchedules,
     }),
     [
       schedules,
+      loading,
+      error,
       getSchedule,
+      fetchScheduleDetail,
       createSchedule,
       updateSchedule,
       deleteSchedule,
       addRestaurant,
       removeRestaurant,
       reorderRestaurants,
+      refreshSchedules,
     ],
   );
 
