@@ -7,7 +7,6 @@ import { getRestaurantByIdApi } from '../../api/restaurants';
 import { useAuth } from '../../context/AuthContext';
 import { usePreferences } from '../../context/PreferenceContext';
 import { useDashboard } from '../../hooks/useDashboard';
-import { useRestaurantList } from '../../hooks/useRestaurants';
 import { mapApiRestaurant } from '../../mappers/restaurant';
 import type { Restaurant } from '../../types/restaurant';
 import { buildRecommendations } from '../../utils/recommendations';
@@ -16,15 +15,6 @@ export default function HomePage() {
   const { user } = useAuth();
   const { catalog } = usePreferences();
   const { stats, loading: dashboardLoading, error: dashboardError } = useDashboard();
-  const {
-    restaurants: fallbackRestaurants,
-    loading: fallbackLoading,
-    error: fallbackError,
-  } = useRestaurantList({
-    tasteSimilar: true,
-    size: 30,
-    sortBy: 'rating',
-  });
 
   const [similarRestaurants, setSimilarRestaurants] = useState<Restaurant[]>([]);
   const [similarLoading, setSimilarLoading] = useState(false);
@@ -65,24 +55,20 @@ export default function HomePage() {
     };
   }, [similarIds.join(',')]);
 
-  const baseRestaurants =
-    similarRestaurants.length > 0 ? similarRestaurants : fallbackRestaurants;
-
   const recommendations = useMemo(
-    () => buildRecommendations(baseRestaurants, user?.preferences ?? [], 6),
-    [baseRestaurants, user?.preferences],
+    () => buildRecommendations(similarRestaurants, user?.preferences ?? [], 6),
+    [similarRestaurants, user?.preferences],
   );
 
-  const loading =
-    dashboardLoading || similarLoading || (similarIds.length === 0 && fallbackLoading);
-  const error = dashboardError ?? (similarIds.length === 0 ? fallbackError : null);
+  const loading = dashboardLoading || similarLoading;
+  const error = dashboardError;
 
   const recommendCount = recommendations.length;
   const preferenceCount = stats?.preferenceCount ?? user?.preferences.length ?? 0;
-  const summarySource =
-    similarIds.length > 0 && similarRestaurants.length > 0
-      ? '대시보드·유사 사용자 기반'
-      : '취향·유사 사용자 기반';
+  const hasSimilarTasteData = similarIds.length > 0;
+  const summarySource = hasSimilarTasteData
+    ? '나이대·매운맛 취향이 비슷한 사용자의 최근 일정'
+    : '유사 입맛 사용자 데이터 없음';
 
   const labelForPref = (code: string) => {
     const fromCatalog = catalog.find((p) => p.code === code)?.displayName;
@@ -157,8 +143,21 @@ export default function HomePage() {
                   <RestaurantCard key={restaurant.id} restaurant={restaurant} />
                 ))
               ) : (
-                <div className="rounded-2xl bg-brand-soft py-8 text-center text-sm text-muted">
-                  추천할 맛집이 없습니다. 취향을 설정하거나 맛집 목록을 확인해 보세요.
+                <div className="rounded-2xl bg-brand-soft px-4 py-8 text-center text-sm text-muted">
+                  {hasSimilarTasteData ? (
+                    <p>추천 맛집 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>
+                  ) : (
+                    <>
+                      <p className="font-medium text-ink">
+                        비슷한 입맛 사용자의 최근 일정 맛집이 없습니다.
+                      </p>
+                      <p className="mt-2 text-xs">
+                        같은 나이대(10대 단위)이고 매운맛 취향이 겹치는 사용자가 최근 1개월
+                        일정에 담은 맛집이 있을 때 표시됩니다. 취향(특히 매운맛)을 설정해
+                        보세요.
+                      </p>
+                    </>
+                  )}
                 </div>
               )}
             </div>

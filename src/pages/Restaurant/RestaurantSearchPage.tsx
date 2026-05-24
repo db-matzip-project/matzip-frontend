@@ -165,26 +165,47 @@ export default function RestaurantSearchPage() {
                 <RestaurantCard key={r.id} restaurant={r} />
               ))
             ) : (
-              <div className="rounded-2xl bg-brand-soft py-12 text-center">
-                <p className="text-sm font-medium text-brand">검색 결과가 없습니다</p>
-                <p className="mt-1 text-xs text-muted">
-                  DB에 없는 맛집은{' '}
-                  <button
-                    type="button"
-                    className="font-medium text-brand"
-                    onClick={() => setMode('kakao')}
-                  >
-                    카카오 검색
-                  </button>
-                  탭을 이용해 보세요.
-                </p>
-                <button
-                  type="button"
-                  onClick={resetFilters}
-                  className="mt-4 text-sm font-medium text-brand"
-                >
-                  전체 보기
-                </button>
+              <div className="rounded-2xl bg-brand-soft px-4 py-12 text-center">
+                {tasteSimilar ? (
+                  <>
+                    <p className="text-sm font-medium text-brand">
+                      입맛 비슷한 사용자 맛집이 없습니다
+                    </p>
+                    <p className="mt-2 text-xs text-muted">
+                      같은 나이대·매운맛 취향이 겹치는 사용자의 최근 일정에 포함된 맛집만
+                      보여 줍니다. 조건에 맞는 사용자나 일정이 없으면 빈 목록이 정상입니다.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setTasteSimilar(false)}
+                      className="mt-4 text-sm font-medium text-brand"
+                    >
+                      필터 해제하고 전체 검색
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-medium text-brand">검색 결과가 없습니다</p>
+                    <p className="mt-1 text-xs text-muted">
+                      DB에 없는 맛집은{' '}
+                      <button
+                        type="button"
+                        className="font-medium text-brand"
+                        onClick={() => setMode('kakao')}
+                      >
+                        카카오 검색
+                      </button>
+                      탭을 이용해 보세요.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={resetFilters}
+                      className="mt-4 text-sm font-medium text-brand"
+                    >
+                      전체 보기
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </div>

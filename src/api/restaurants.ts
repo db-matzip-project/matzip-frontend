@@ -22,12 +22,13 @@ export type RestaurantListParams = {
 export async function getRestaurantsApi(params: RestaurantListParams = {}) {
   const { data } = await apiClient.get<RestaurantPageResponse>('/api/v1/restaurants', {
     params: {
-      page: 0,
-      size: 50,
+      page: params.page ?? 0,
+      size: params.size ?? 50,
       ...params,
       category: params.category && params.category !== '전체' ? params.category : undefined,
       minRating: params.minRating && params.minRating > 0 ? params.minRating : undefined,
       sortBy: params.sortBy,
+      tasteSimilar: params.tasteSimilar === true ? true : undefined,
     },
   });
   return data;
