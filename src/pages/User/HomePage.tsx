@@ -77,9 +77,14 @@ export default function HomePage() {
     dashboardLoading || similarLoading || (similarIds.length === 0 && fallbackLoading);
   const error = dashboardError ?? (similarIds.length === 0 ? fallbackError : null);
 
-  const recommendCount =
-    stats?.similarTasteTopRestaurants?.length ?? recommendations.length;
+  /** 카드 숫자·리스트 모두 recommendations 기준 (stats.length 단독 사용 시 불일치) */
+  const recommendCount = recommendations.length;
+  const topMatchScore = recommendations[0]?.matchScore ?? 0;
   const preferenceCount = stats?.preferenceCount ?? user?.preferences.length ?? 0;
+  const summarySource =
+    similarIds.length > 0 && similarRestaurants.length > 0
+      ? '대시보드·유사 사용자 기반'
+      : '취향·유사 사용자 기반';
 
   const labelForPref = (code: string) => {
     const fromCatalog = catalog.find((p) => p.code === code)?.displayName;
@@ -120,11 +125,7 @@ export default function HomePage() {
           <div>
             <h2 className="text-base font-bold text-ink">나를 위한 맞춤 추천</h2>
             <p className="text-xs text-muted">
-              {stats
-                ? '대시보드·유사 사용자 기반'
-                : '취향·유사 사용자 기반'}
-              {' · 총 '}
-              {recommendCount}곳
+              {summarySource} · 총 {recommendCount}곳
             </p>
           </div>
           <Link to="/restaurants" className="text-xs font-medium text-brand">
@@ -147,9 +148,7 @@ export default function HomePage() {
                 <p className="text-[10px] text-muted">추천 맛집</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-brand">
-                  {recommendations[0]?.matchScore ?? 0}%
-                </p>
+                <p className="text-2xl font-bold text-brand">{topMatchScore}%</p>
                 <p className="text-[10px] text-muted">최고 일치도</p>
               </div>
               <div className="text-center">
