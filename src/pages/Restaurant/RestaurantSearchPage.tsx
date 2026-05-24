@@ -172,8 +172,8 @@ export default function RestaurantSearchPage() {
                       입맛 비슷한 사용자 맛집이 없습니다
                     </p>
                     <p className="mt-2 text-xs text-muted">
-                      같은 나이대·매운맛 취향이 겹치는 사용자의 최근 일정에 포함된 맛집만
-                      보여 줍니다. 조건에 맞는 사용자나 일정이 없으면 빈 목록이 정상입니다.
+                      취향이 겹치는 사용자가 최근 일정에 담은 맛집이 있을 때 표시됩니다.
+                      취향을 설정해 보세요.
                     </p>
                     <button
                       type="button"

@@ -67,7 +67,7 @@ export default function HomePage() {
   const preferenceCount = stats?.preferenceCount ?? user?.preferences.length ?? 0;
   const hasSimilarTasteData = similarIds.length > 0;
   const summarySource = hasSimilarTasteData
-    ? '나이대·매운맛 취향이 비슷한 사용자의 최근 일정'
+    ? '취향이 비슷한 사용자의 최근 일정'
     : '유사 입맛 사용자 데이터 없음';
 
   const labelForPref = (code: string) => {
@@ -152,9 +152,8 @@ export default function HomePage() {
                         비슷한 입맛 사용자의 최근 일정 맛집이 없습니다.
                       </p>
                       <p className="mt-2 text-xs">
-                        같은 나이대(10대 단위)이고 매운맛 취향이 겹치는 사용자가 최근 1개월
-                        일정에 담은 맛집이 있을 때 표시됩니다. 취향(특히 매운맛)을 설정해
-                        보세요.
+                        취향이 겹치는 사용자가 최근 일정에 담은 맛집이 있을 때 표시됩니다.
+                        취향을 설정해 보세요.
                       </p>
                     </>
                   )}
