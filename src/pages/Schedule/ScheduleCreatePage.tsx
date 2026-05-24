@@ -99,6 +99,7 @@ export default function ScheduleCreatePage() {
             <KakaoPlaceSearch
               disabled={submitting}
               addLabel="목록에 담기"
+              hint="카카오에서 검색한 장소는 일정 생성 시 DB에 저장됩니다."
               onAdd={(place) => {
                 setPendingPlaces((prev) =>
                   prev.some((p) => p.apiId === place.apiId) ? prev : [...prev, place],

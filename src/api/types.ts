@@ -53,6 +53,20 @@ export type RestaurantPageResponse = {
   totalPages: number;
 };
 
+export type KakaoImportRequest = {
+  query: string;
+  x?: number;
+  y?: number;
+  radius?: number;
+  page?: number;
+  size?: number;
+};
+
+export type KakaoImportResponse = {
+  kakaoResultCount: number;
+  savedCount: number;
+};
+
 export type RestaurantSortBy =
   | 'rating'
   | 'rating_asc'

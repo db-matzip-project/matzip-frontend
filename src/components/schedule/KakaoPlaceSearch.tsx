@@ -7,12 +7,14 @@ type KakaoPlaceSearchProps = {
   onAdd: (place: SchedulePlacePayload) => Promise<void> | void;
   disabled?: boolean;
   addLabel?: string;
+  hint?: string;
 };
 
 export default function KakaoPlaceSearch({
   onAdd,
   disabled = false,
   addLabel = '일정에 추가',
+  hint,
 }: KakaoPlaceSearchProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SchedulePlacePayload[]>([]);
@@ -64,9 +66,7 @@ export default function KakaoPlaceSearch({
 
   return (
     <div className="space-y-3">
-      <p className="text-xs text-muted">
-        카카오에서 검색한 장소는 「{addLabel}」 시 우리 DB에 저장된 뒤 일정에 연결됩니다.
-      </p>
+      {hint && <p className="text-xs text-muted">{hint}</p>}
       <div className="flex gap-2">
         <input
           type="search"

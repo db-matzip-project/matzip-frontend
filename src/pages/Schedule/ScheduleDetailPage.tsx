@@ -154,6 +154,7 @@ export default function ScheduleDetailPage() {
               <h3 className="mb-2 text-sm font-bold text-ink">카카오에서 검색</h3>
               <KakaoPlaceSearch
                 disabled={busy}
+                hint="카카오에서 검색한 장소는 DB에 저장된 뒤 이 일정에 추가됩니다."
                 onAdd={async (place) => {
                   await addRestaurantFromPlace(schedule.id, place);
                   await fetchScheduleDetail(schedule.id);
