@@ -3,7 +3,10 @@ import { Link } from 'react-router-dom';
 import RestaurantCard from '../../components/restaurant/RestaurantCard';
 import PageHeader from '../../components/ui/PageHeader';
 import Chip from '../../components/ui/Chip';
-import { RESTAURANT_CATEGORIES } from '../../constants/restaurantFilters';
+import {
+  getRestaurantCategoryLabel,
+  RESTAURANT_CATEGORIES,
+} from '../../constants/restaurantFilters';
 import { useRestaurantList } from '../../hooks/useRestaurants';
 import {
   DEFAULT_FILTERS,
@@ -50,7 +53,7 @@ export default function RestaurantListPage() {
           {RESTAURANT_CATEGORIES.map((cat) => (
             <Chip
               key={cat}
-              label={cat}
+              label={getRestaurantCategoryLabel(cat)}
               selected={category === cat}
               onClick={() => setCategory(cat)}
             />

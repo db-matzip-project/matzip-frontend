@@ -44,11 +44,12 @@ VITE_KAKAO_MAP_APP_KEY=<카카오 JavaScript 키>
 
 | 위치 | Swagger 타입 | 프론트 |
 |------|----------------|--------|
-| `GET /restaurants?category=` | string | `한식` 등 (`RESTAURANT_CATEGORY_VALUES`) |
+| `GET /restaurants?category=` | string | `한식` … `디저트` · `기타` (`RESTAURANT_CATEGORY_VALUES`) |
 | 응답 `Restaurant.category` | string | 카드/상세 그대로 표시 |
-| `POST /schedules/{id}/items/from-place` → `place.category` | string | 카카오 `category_name` 전달 → **백엔드에서 6종으로 정규화** |
+| `POST /schedules/{id}/items/from-place` → `place.category` | string | 카카오 `category_name` → 백엔드 정규화 |
 
-백엔드 저장 시 `한식|일식|중식|양식|채식|디저트` 로 정규화. `GET ?category=` 는 위 값 **정확히** 매칭 (레거시 데이터는 마이그레이션 전까지 일부 어긋날 수 있음).
+백엔드 저장·필터 값: `한식` | `일식` | `중식` | `양식` | `채식` | `디저트` | `기타`  
+UI 칩만 `디저트` → **「카페/디저트」** (API 쿼리는 `category=디저트`). 카페는 디저트로 분류.
 
 ### 기타
 

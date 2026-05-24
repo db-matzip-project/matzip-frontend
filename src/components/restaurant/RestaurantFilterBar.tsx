@@ -1,4 +1,5 @@
 import {
+  getRestaurantCategoryLabel,
   RATING_OPTIONS,
   RESTAURANT_CATEGORIES,
   SORT_OPTIONS,
@@ -25,7 +26,7 @@ export default function RestaurantFilterBar({
           {RESTAURANT_CATEGORIES.map((cat) => (
             <Chip
               key={cat}
-              label={cat}
+              label={getRestaurantCategoryLabel(cat)}
               selected={filters.category === cat}
               onClick={() => onChange({ category: cat })}
             />

@@ -8,8 +8,12 @@ import {
   type RestaurantFilterState,
 } from '../../utils/filterRestaurants';
 import Chip from '../../components/ui/Chip';
-import { RESTAURANT_CATEGORIES } from '../../constants/restaurantFilters';
+import {
+  getRestaurantCategoryLabel,
+  RESTAURANT_CATEGORIES,
+} from '../../constants/restaurantFilters';
 import { useRestaurantList } from '../../hooks/useRestaurants';
+import { buildRestaurantListQuery } from '../../utils/restaurantSort';
 
 type MapLocationState = { selectedId?: string };
 
@@ -20,16 +24,17 @@ export default function RestaurantMapPage() {
   const [selectedId, setSelectedId] = useState<string | undefined>(initialId);
   const [category, setCategory] = useState<string>('전체');
 
-  // 지도는 전체 목록을 받아 프론트에서 카테고리 매칭 (API category 값 형식이 제각각일 수 있음)
-  const { restaurants: apiRestaurants, loading, error } = useRestaurantList({
-    size: 50,
-    sortBy: 'rating',
-  });
-
   const filters: RestaurantFilterState = useMemo(
-    () => ({ ...DEFAULT_FILTERS, category }),
+    () => ({ ...DEFAULT_FILTERS, category, sortBy: 'rating' }),
     [category],
   );
+
+  const apiParams = useMemo(
+    () => buildRestaurantListQuery(filters, { size: 50 }),
+    [filters],
+  );
+
+  const { restaurants: apiRestaurants, loading, error } = useRestaurantList(apiParams);
 
   const restaurants = useMemo(
     () => filterRestaurants(apiRestaurants, filters),
@@ -70,7 +75,7 @@ export default function RestaurantMapPage() {
           {RESTAURANT_CATEGORIES.map((cat) => (
             <Chip
               key={cat}
-              label={cat}
+              label={getRestaurantCategoryLabel(cat)}
               selected={category === cat}
               onClick={() => handleCategoryChange(cat)}
             />
@@ -98,7 +103,10 @@ export default function RestaurantMapPage() {
 
       <div className="mx-4 rounded-2xl border border-brand-light bg-surface px-4 py-4">
         <h2 className="mb-3 text-sm font-bold text-ink">
-          {category === '전체' ? '주변 맛집' : `${category} 맛집`} ({restaurants.length})
+          {category === '전체'
+            ? '주변 맛집'
+            : `${getRestaurantCategoryLabel(category)} 맛집`}{' '}
+          ({restaurants.length})
         </h2>
 
         {selected && (
