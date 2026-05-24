@@ -23,6 +23,7 @@ export default function ScheduleDetailPage() {
   } = useSchedules();
 
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [showPicker, setShowPicker] = useState(false);
   const [pickerSelection, setPickerSelection] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
@@ -34,8 +35,12 @@ export default function ScheduleDetailPage() {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      await fetchScheduleDetail(id);
-      if (!cancelled) setLoading(false);
+      setLoadError(null);
+      const detail = await fetchScheduleDetail(id);
+      if (!cancelled) {
+        if (!detail) setLoadError('일정 정보를 불러오지 못했습니다.');
+        setLoading(false);
+      }
     })();
     return () => {
       cancelled = true;
@@ -50,10 +55,12 @@ export default function ScheduleDetailPage() {
     );
   }
 
-  if (!schedule) {
+  if (!schedule || loadError) {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-6">
-        <p className="text-muted">일정을 찾을 수 없습니다.</p>
+        <p className="text-center text-muted">
+          {loadError ?? '일정을 찾을 수 없습니다.'}
+        </p>
         <Button onClick={() => navigate('/schedules')}>목록으로</Button>
       </div>
     );

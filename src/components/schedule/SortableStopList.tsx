@@ -1,3 +1,7 @@
+import { useEffect, useState } from 'react';
+import { getRestaurantByIdApi } from '../../api/restaurants';
+import { mapApiRestaurant } from '../../mappers/restaurant';
+import type { Restaurant } from '../../types/restaurant';
 import {
   DndContext,
   closestCenter,
@@ -32,7 +36,30 @@ function SortableStopItem({
   order: number;
   onRemove: () => void;
 }) {
-  const restaurant = getCachedRestaurant(id);
+  const [restaurant, setRestaurant] = useState<Restaurant | undefined>(
+    () => getCachedRestaurant(id) ?? undefined,
+  );
+
+  useEffect(() => {
+    const cached = getCachedRestaurant(id);
+    if (cached) {
+      setRestaurant(cached);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await getRestaurantByIdApi(Number(id));
+        if (!cancelled) setRestaurant(mapApiRestaurant(data));
+      } catch {
+        if (!cancelled) setRestaurant(undefined);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
   const {
     attributes,
     listeners,

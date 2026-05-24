@@ -111,39 +111,30 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
   );
 
   const createSchedule = useCallback(async (input: CreateScheduleInput): Promise<Schedule> => {
-    const numericIds = (input.restaurantIds ?? [])
-      .map(Number)
-      .filter((id) => Number.isFinite(id) && id > 0);
-    const memoOnFirstItem = Boolean(input.memo?.trim());
-    const useBatchCreate = numericIds.length > 0 && !memoOnFirstItem;
-
     let schedule = mapScheduleDetail(
-      useBatchCreate
-        ? await createScheduleApi({
-            title: input.title.trim(),
-            travelDate: input.date,
-            restaurantIds: numericIds,
-          })
-        : await createScheduleApi({
-            title: input.title.trim(),
-            travelDate: input.date,
-          }),
+      await createScheduleApi({
+        title: input.title.trim(),
+        travelDate: input.date,
+      }),
     );
 
-    if (!useBatchCreate) {
-      for (const [index, restaurantId] of (input.restaurantIds ?? []).entries()) {
-        schedule = mapScheduleDetail(
-          await addScheduleItemApi(Number(schedule.id), {
-            restaurantId: Number(restaurantId),
-            memo: index === 0 ? input.memo?.trim() || undefined : undefined,
-          }),
-        );
-      }
+    const restaurantIds = (input.restaurantIds ?? []).filter((id) => {
+      const n = Number(id);
+      return Number.isFinite(n) && n > 0;
+    });
+
+    for (const [index, restaurantId] of restaurantIds.entries()) {
+      schedule = mapScheduleDetail(
+        await addScheduleItemApi(Number(schedule.id), {
+          restaurantId: Number(restaurantId),
+          memo: index === 0 ? input.memo?.trim() || undefined : undefined,
+        }),
+      );
     }
 
     for (const [index, place] of (input.places ?? []).entries()) {
       const useMemo =
-        (input.restaurantIds?.length ?? 0) === 0 && index === 0
+        restaurantIds.length === 0 && index === 0
           ? input.memo?.trim() || undefined
           : undefined;
       schedule = mapScheduleDetail(
@@ -151,8 +142,14 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
       );
     }
 
+    const fresh = await getScheduleByIdApi(Number(schedule.id));
+    schedule = mapScheduleDetail(fresh);
+
     setScheduleDetails((prev) => ({ ...prev, [schedule.id]: schedule }));
-    setSchedules((prev) => [schedule, ...prev]);
+    setSchedules((prev) => [
+      { ...schedule, itemCount: schedule.restaurantIds.length },
+      ...prev.filter((s) => s.id !== schedule.id),
+    ]);
     return schedule;
   }, []);
 
