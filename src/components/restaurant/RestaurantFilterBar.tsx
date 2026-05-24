@@ -1,5 +1,4 @@
 import {
-  PRICE_OPTIONS,
   RATING_OPTIONS,
   RESTAURANT_CATEGORIES,
   SORT_OPTIONS,
@@ -43,20 +42,6 @@ export default function RestaurantFilterBar({
               label={label}
               selected={filters.minRating === value}
               onClick={() => onChange({ minRating: value })}
-            />
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <p className="mb-2 text-xs font-semibold text-muted">가격대</p>
-        <div className="flex flex-wrap gap-2">
-          {PRICE_OPTIONS.map(({ value, label }) => (
-            <Chip
-              key={label}
-              label={label}
-              selected={filters.priceRange === value}
-              onClick={() => onChange({ priceRange: value })}
             />
           ))}
         </div>

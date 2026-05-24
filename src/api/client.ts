@@ -3,6 +3,9 @@ import axios, { type AxiosError } from 'axios';
 const TOKEN_KEY = 'matzip_access_token';
 
 const REMOTE_API = import.meta.env.VITE_API_BASE_URL ?? '';
+const PROXY_TARGET = import.meta.env.VITE_API_PROXY_TARGET ?? '';
+const usesNgrok =
+  REMOTE_API.includes('ngrok') || PROXY_TARGET.includes('ngrok');
 
 /** 개발: Vite 프록시(/api). 프로덕션: VITE_API_BASE_URL 직접 호출 */
 const baseURL = import.meta.env.DEV ? '' : REMOTE_API;
@@ -32,7 +35,7 @@ apiClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = toAuthorizationHeader(token);
   }
-  if (!import.meta.env.DEV && import.meta.env.VITE_API_BASE_URL?.includes('ngrok')) {
+  if (usesNgrok) {
     config.headers['ngrok-skip-browser-warning'] = 'true';
   }
   return config;

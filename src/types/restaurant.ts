@@ -4,7 +4,6 @@ export type Restaurant = {
   category: string;
   rating: number;
   reviewCount: number;
-  priceRange: 1 | 2 | 3;
   tags: string[];
   address: string;
   distance: string;

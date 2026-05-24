@@ -11,7 +11,7 @@ export default function RestaurantPicker({
   onToggle,
   excludeIds = [],
 }: RestaurantPickerProps) {
-  const { restaurants, loading, error } = useRestaurantList({ size: 50, sort: 'rating,desc' });
+  const { restaurants, loading, error } = useRestaurantList({ size: 50, sortBy: 'rating' });
   const available = restaurants.filter((r) => !excludeIds.includes(r.id));
 
   if (loading) {

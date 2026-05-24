@@ -10,25 +10,20 @@ import {
   filterRestaurants,
   type RestaurantFilterState,
 } from '../../utils/filterRestaurants';
+import { buildRestaurantListQuery } from '../../utils/restaurantSort';
 
 export default function RestaurantListPage() {
   const [category, setCategory] = useState<string>('전체');
-
-  const apiParams = useMemo(
-    () => ({
-      sort: 'rating,desc',
-      size: 50,
-    }),
-    [],
-  );
-
-  const { restaurants: apiRestaurants, totalElements, loading, error } =
-    useRestaurantList(apiParams);
 
   const filters: RestaurantFilterState = useMemo(
     () => ({ ...DEFAULT_FILTERS, category, sortBy: 'rating' }),
     [category],
   );
+
+  const apiParams = useMemo(() => buildRestaurantListQuery(filters, { size: 50 }), [filters]);
+
+  const { restaurants: apiRestaurants, totalElements, loading, error } =
+    useRestaurantList(apiParams);
 
   const restaurants = useMemo(
     () => filterRestaurants(apiRestaurants, filters),

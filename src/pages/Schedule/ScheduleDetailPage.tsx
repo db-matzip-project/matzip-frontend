@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import KakaoPlaceSearch from '../../components/schedule/KakaoPlaceSearch';
 import RestaurantPicker from '../../components/schedule/RestaurantPicker';
 import RouteVisualization from '../../components/schedule/RouteVisualization';
 import SortableStopList from '../../components/schedule/SortableStopList';
@@ -15,6 +16,7 @@ export default function ScheduleDetailPage() {
     fetchScheduleDetail,
     deleteSchedule,
     addRestaurant,
+    addRestaurantFromPlace,
     removeRestaurant,
     reorderRestaurants,
   } = useSchedules();
@@ -147,21 +149,33 @@ export default function ScheduleDetailPage() {
         </section>
 
         {showPicker && (
-          <section className="rounded-2xl border border-brand-light bg-brand-soft p-4">
-            <h3 className="mb-2 text-sm font-bold text-ink">식당 추가</h3>
-            <RestaurantPicker
-              selectedIds={pickerSelection}
-              onToggle={togglePickerItem}
-              excludeIds={schedule.restaurantIds}
-            />
-            <Button
-              fullWidth
-              className="mt-3"
-              disabled={pickerSelection.length === 0 || busy}
-              onClick={handleAddRestaurants}
-            >
-              {pickerSelection.length}곳 추가
-            </Button>
+          <section className="space-y-4 rounded-2xl border border-brand-light bg-brand-soft p-4">
+            <div>
+              <h3 className="mb-2 text-sm font-bold text-ink">카카오에서 검색</h3>
+              <KakaoPlaceSearch
+                disabled={busy}
+                onAdd={async (place) => {
+                  await addRestaurantFromPlace(schedule.id, place);
+                  await fetchScheduleDetail(schedule.id);
+                }}
+              />
+            </div>
+            <div className="border-t border-brand-light pt-4">
+              <h3 className="mb-2 text-sm font-bold text-ink">저장된 맛집에서 선택</h3>
+              <RestaurantPicker
+                selectedIds={pickerSelection}
+                onToggle={togglePickerItem}
+                excludeIds={schedule.restaurantIds}
+              />
+              <Button
+                fullWidth
+                className="mt-3"
+                disabled={pickerSelection.length === 0 || busy}
+                onClick={handleAddRestaurants}
+              >
+                {pickerSelection.length}곳 추가
+              </Button>
+            </div>
           </section>
         )}
 

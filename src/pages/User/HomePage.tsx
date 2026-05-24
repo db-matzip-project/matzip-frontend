@@ -14,7 +14,7 @@ export default function HomePage() {
   const { restaurants, loading, error } = useRestaurantList({
     tasteSimilar: true,
     size: 30,
-    sort: 'rating',
+    sortBy: 'rating',
   });
 
   const recommendations = useMemo(

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getScheduleRouteLegsApi } from '../../api/route';
+import { getOptimalOrderApi, getScheduleRouteLegsApi } from '../../api/route';
 import type { RouteLegDto } from '../../api/types';
 import { getCachedRestaurant } from '../../utils/restaurantCache';
 
@@ -13,11 +13,13 @@ export default function RouteVisualization({
   scheduleId,
 }: RouteVisualizationProps) {
   const [legs, setLegs] = useState<RouteLegDto[]>([]);
+  const [optimalTotalKm, setOptimalTotalKm] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!scheduleId || restaurantIds.length < 2) {
+    if (restaurantIds.length < 2) {
       setLegs([]);
+      setOptimalTotalKm(null);
       return;
     }
 
@@ -25,10 +27,25 @@ export default function RouteVisualization({
     setLoading(true);
     (async () => {
       try {
-        const data = await getScheduleRouteLegsApi(Number(scheduleId));
-        if (!cancelled) setLegs(data);
+        if (scheduleId) {
+          const data = await getScheduleRouteLegsApi(Number(scheduleId));
+          if (!cancelled) {
+            setLegs(data);
+            setOptimalTotalKm(null);
+          }
+        } else {
+          const ids = restaurantIds.map(Number).filter((n) => Number.isFinite(n));
+          const data = await getOptimalOrderApi(ids);
+          if (!cancelled) {
+            setLegs([]);
+            setOptimalTotalKm(data.totalDistanceKm);
+          }
+        }
       } catch {
-        if (!cancelled) setLegs([]);
+        if (!cancelled) {
+          setLegs([]);
+          setOptimalTotalKm(null);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -37,7 +54,7 @@ export default function RouteVisualization({
     return () => {
       cancelled = true;
     };
-  }, [scheduleId, restaurantIds.length]);
+  }, [scheduleId, restaurantIds.join(',')]);
 
   if (restaurantIds.length < 2) {
     return (
@@ -47,7 +64,10 @@ export default function RouteVisualization({
     );
   }
 
-  const totalDistanceKm = legs.reduce((sum, leg) => sum + leg.distanceKm, 0);
+  const totalDistanceKm =
+    legs.length > 0
+      ? legs.reduce((sum, leg) => sum + leg.distanceKm, 0)
+      : (optimalTotalKm ?? 0);
   const totalWalkMinutes = Math.round(totalDistanceKm * 12);
 
   return (

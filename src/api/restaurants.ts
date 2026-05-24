@@ -1,6 +1,5 @@
 import { apiClient } from './client';
-import type { RestaurantPageResponse } from './types';
-import type { ApiRestaurant } from './types';
+import type { ApiRestaurant, RestaurantPageResponse, RestaurantSortBy } from './types';
 
 export type RestaurantListParams = {
   category?: string;
@@ -11,7 +10,7 @@ export type RestaurantListParams = {
   maxLng?: number;
   page?: number;
   size?: number;
-  sort?: string;
+  sortBy?: RestaurantSortBy;
   tasteSimilar?: boolean;
 };
 
@@ -22,6 +21,8 @@ export async function getRestaurantsApi(params: RestaurantListParams = {}) {
       size: 50,
       ...params,
       category: params.category && params.category !== '전체' ? params.category : undefined,
+      minRating: params.minRating && params.minRating > 0 ? params.minRating : undefined,
+      sortBy: params.sortBy,
     },
   });
   return data;

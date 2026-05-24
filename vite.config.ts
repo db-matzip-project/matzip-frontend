@@ -16,7 +16,8 @@ export default defineConfig(({ mode }) => {
         '/api': {
           target: apiTarget,
           changeOrigin: true,
-          secure: apiTarget.startsWith('https'),
+          // ngrok HTTPS: 백엔드 권장값 (자체 서명/프록시 이슈 방지)
+          secure: false,
           configure: (proxy) => {
             proxy.on('proxyReq', (proxyReq) => {
               if (isNgrok) {

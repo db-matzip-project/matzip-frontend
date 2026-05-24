@@ -31,14 +31,12 @@ function toMapPosition(lat: number, lng: number): { x: number; y: number } {
 }
 
 export function mapApiRestaurant(api: ApiRestaurant): Restaurant {
-  const addCount = api.scheduleAddCount ?? 0;
   const restaurant: Restaurant = {
     id: String(api.id),
     name: api.name ?? '이름 없음',
     category: api.category ?? '기타',
     rating: api.rating ?? 0,
     reviewCount: api.reviewCount ?? 0,
-    priceRange: addCount > 50 ? 3 : addCount > 20 ? 2 : 1,
     tags: [],
     address: api.roadAddress || api.address,
     distance: '—',

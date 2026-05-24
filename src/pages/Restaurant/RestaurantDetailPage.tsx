@@ -1,14 +1,13 @@
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import RestaurantReviewsSection from '../../components/restaurant/RestaurantReviewsSection';
 import Button from '../../components/ui/Button';
 import PageHeader from '../../components/ui/PageHeader';
 import { useRestaurantDetail } from '../../hooks/useRestaurants';
 
-const priceLabels = ['', '저렴', '보통', '고급'];
-
 export default function RestaurantDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { restaurant, loading, error } = useRestaurantDetail(id);
+  const { restaurant, loading, error, refetch } = useRestaurantDetail(id);
 
   if (loading) {
     return (
@@ -37,12 +36,9 @@ export default function RestaurantDetailPage() {
 
       <section className="space-y-4 px-4 pt-4">
         <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-brand-light px-2.5 py-0.5 text-xs font-medium text-ink ring-1 ring-brand-light">
-              {restaurant.category}
-            </span>
-            <span className="text-sm text-muted">{priceLabels[restaurant.priceRange]}</span>
-          </div>
+          <span className="inline-block rounded-full bg-brand-light px-2.5 py-0.5 text-xs font-medium text-ink ring-1 ring-brand-light">
+            {restaurant.category}
+          </span>
           <div className="mt-2 flex items-center gap-2">
             <span className="text-lg font-bold text-brand">★ {restaurant.rating ?? 0}</span>
             <span className="text-sm text-muted">
@@ -101,6 +97,10 @@ export default function RestaurantDetailPage() {
             일정에 추가
           </Button>
         </div>
+
+        {id && (
+          <RestaurantReviewsSection restaurantId={id} onReviewChanged={refetch} />
+        )}
       </section>
     </div>
   );

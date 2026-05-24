@@ -23,7 +23,7 @@ export default function RestaurantMapPage() {
   // 지도는 전체 목록을 받아 프론트에서 카테고리 매칭 (API category 값 형식이 제각각일 수 있음)
   const { restaurants: apiRestaurants, loading, error } = useRestaurantList({
     size: 50,
-    sort: 'rating,desc',
+    sortBy: 'rating',
   });
 
   const filters: RestaurantFilterState = useMemo(
@@ -92,12 +92,8 @@ export default function RestaurantMapPage() {
             restaurants={restaurants}
             selectedId={selectedId}
             onSelect={setSelectedId}
-            className="relative h-64 w-full"
           />
         )}
-        <p className="mt-2 text-center text-[10px] text-subtle">
-          마커를 탭하면 상세를 볼 수 있어요 · 카카오맵
-        </p>
       </div>
 
       <div className="mx-4 rounded-2xl border border-brand-light bg-surface px-4 py-4">
@@ -132,7 +128,7 @@ export default function RestaurantMapPage() {
           </p>
         )}
 
-        <ul className="max-h-44 space-y-1.5 overflow-y-auto">
+        <ul className="max-h-80 space-y-1.5 overflow-y-auto">
           {restaurants.map((r) => (
             <li key={r.id}>
               <button

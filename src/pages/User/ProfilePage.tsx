@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
+import ProfileMyReviews from '../../components/user/ProfileMyReviews';
 import Button from '../../components/ui/Button';
 import PageHeader from '../../components/ui/PageHeader';
 import { PREFERENCE_LABELS } from '../../constants/preferences';
@@ -49,6 +50,8 @@ export default function ProfilePage() {
             </dd>
           </div>
         </dl>
+
+        <ProfileMyReviews enabled />
 
         <div className="rounded-2xl border border-brand-light bg-surface p-4">
           <h3 className="mb-2 text-sm font-semibold text-brand">내 취향</h3>

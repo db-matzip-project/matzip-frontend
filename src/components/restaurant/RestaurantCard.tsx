@@ -11,8 +11,6 @@ type RestaurantCardProps = {
   showMatch?: boolean;
 };
 
-const priceLabels = ['', '₩', '₩₩', '₩₩₩'];
-
 export default function RestaurantCard({
   restaurant,
   showMatch = true,
@@ -37,8 +35,7 @@ export default function RestaurantCard({
           )}
         </div>
         <p className="text-xs text-muted">
-          {restaurant.category} · {priceLabels[restaurant.priceRange]} ·{' '}
-          {restaurant.distance}
+          {restaurant.category} · {restaurant.distance}
         </p>
         <div className="flex items-center gap-1 text-xs">
           <span className="font-semibold text-brand">★ {restaurant.rating ?? 0}</span>

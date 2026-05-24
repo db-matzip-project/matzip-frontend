@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import KakaoPlaceSearch from '../../components/schedule/KakaoPlaceSearch';
 import RestaurantPicker from '../../components/schedule/RestaurantPicker';
+import type { SchedulePlacePayload } from '../../types/place';
 import RouteVisualization from '../../components/schedule/RouteVisualization';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
@@ -23,6 +25,7 @@ export default function ScheduleCreatePage() {
   const [selectedIds, setSelectedIds] = useState<string[]>(
     preselectedId ? [preselectedId] : [],
   );
+  const [pendingPlaces, setPendingPlaces] = useState<SchedulePlacePayload[]>([]);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -52,6 +55,7 @@ export default function ScheduleCreatePage() {
         date,
         memo,
         restaurantIds: selectedIds,
+        places: pendingPlaces,
       });
       navigate(`/schedules/${schedule.id}`, { replace: true });
     } catch {
@@ -89,19 +93,55 @@ export default function ScheduleCreatePage() {
           />
         </div>
 
-        <div>
-          <h2 className="mb-2 text-sm font-bold text-ink">
-            방문 식당 선택 ({selectedIds.length})
-          </h2>
-          {preselectedId && (
-            <p className="mb-2 text-xs text-brand">
-              상세 페이지에서 선택한 식당이 포함되어 있습니다.
-            </p>
-          )}
-          <RestaurantPicker
-            selectedIds={selectedIds}
-            onToggle={toggleRestaurant}
-          />
+        <div className="space-y-4">
+          <div>
+            <h2 className="mb-2 text-sm font-bold text-ink">카카오에서 검색</h2>
+            <KakaoPlaceSearch
+              disabled={submitting}
+              addLabel="목록에 담기"
+              onAdd={(place) => {
+                setPendingPlaces((prev) =>
+                  prev.some((p) => p.apiId === place.apiId) ? prev : [...prev, place],
+                );
+              }}
+            />
+            {pendingPlaces.length > 0 && (
+              <ul className="mt-3 space-y-1.5">
+                {pendingPlaces.map((place) => (
+                  <li
+                    key={place.apiId}
+                    className="flex items-center justify-between rounded-lg bg-cream px-3 py-2 text-sm"
+                  >
+                    <span className="truncate font-medium text-ink">{place.name}</span>
+                    <button
+                      type="button"
+                      className="shrink-0 text-xs text-red-500"
+                      onClick={() =>
+                        setPendingPlaces((prev) => prev.filter((p) => p.apiId !== place.apiId))
+                      }
+                    >
+                      제거
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div>
+            <h2 className="mb-2 text-sm font-bold text-ink">
+              저장된 맛집 ({selectedIds.length})
+            </h2>
+            {preselectedId && (
+              <p className="mb-2 text-xs text-brand">
+                상세 페이지에서 선택한 식당이 포함되어 있습니다.
+              </p>
+            )}
+            <RestaurantPicker
+              selectedIds={selectedIds}
+              onToggle={toggleRestaurant}
+            />
+          </div>
         </div>
 
         {selectedIds.length >= 2 && (

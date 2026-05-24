@@ -1,5 +1,6 @@
 import { apiClient } from './client';
 import type { ScheduleDetail, ScheduleListItem } from './types';
+import type { SchedulePlacePayload } from '../types/place';
 
 export type CreateScheduleRequest = {
   title: string;
@@ -14,6 +15,11 @@ export type UpdateScheduleRequest = {
 export type AddScheduleItemRequest = {
   restaurantId: number;
   memo?: string;
+};
+
+export type AddScheduleItemFromPlaceRequest = {
+  memo?: string;
+  place: SchedulePlacePayload & { id?: string };
 };
 
 export type ReorderScheduleItemsRequest = {
@@ -54,6 +60,31 @@ export async function addScheduleItemApi(
   const { data } = await apiClient.post<ScheduleDetail>(
     `/api/v1/schedules/${scheduleId}/items`,
     body,
+  );
+  return data;
+}
+
+/** 카카오 검색 결과 → DB upsert + 일정 추가 */
+export async function addScheduleItemFromPlaceApi(
+  scheduleId: number,
+  body: AddScheduleItemFromPlaceRequest,
+) {
+  const { place, memo } = body;
+  const { data } = await apiClient.post<ScheduleDetail>(
+    `/api/v1/schedules/${scheduleId}/items/from-place`,
+    {
+      memo,
+      place: {
+        apiId: place.apiId ?? place.id,
+        name: place.name,
+        category: place.category,
+        address: place.address,
+        roadAddress: place.roadAddress,
+        phone: place.phone,
+        latitude: place.latitude,
+        longitude: place.longitude,
+      },
+    },
   );
   return data;
 }

@@ -10,6 +10,7 @@ import {
 import { getApiErrorMessage } from '../api/client';
 import {
   addScheduleItemApi,
+  addScheduleItemFromPlaceApi,
   createScheduleApi,
   deleteScheduleApi,
   getScheduleByIdApi,
@@ -19,6 +20,7 @@ import {
   updateScheduleApi,
 } from '../api/schedules';
 import { mapScheduleDetail, mapScheduleListItem } from '../mappers/schedule';
+import type { SchedulePlacePayload } from '../types/place';
 import type { Schedule } from '../types/schedule';
 import { useAuth } from './AuthContext';
 
@@ -27,6 +29,8 @@ type CreateScheduleInput = {
   date: string;
   memo?: string;
   restaurantIds?: string[];
+  /** 카카오 검색만 된 장소 (from-place로 일정 생성 시 추가) */
+  places?: SchedulePlacePayload[];
 };
 
 type UpdateScheduleInput = Partial<
@@ -43,6 +47,11 @@ type ScheduleContextValue = {
   updateSchedule: (id: string, patch: UpdateScheduleInput) => Promise<void>;
   deleteSchedule: (id: string) => Promise<void>;
   addRestaurant: (scheduleId: string, restaurantId: string, memo?: string) => Promise<void>;
+  addRestaurantFromPlace: (
+    scheduleId: string,
+    place: SchedulePlacePayload,
+    memo?: string,
+  ) => Promise<void>;
   removeRestaurant: (scheduleId: string, restaurantId: string) => Promise<void>;
   reorderRestaurants: (scheduleId: string, restaurantIds: string[]) => Promise<void>;
   refreshSchedules: () => Promise<void>;
@@ -115,6 +124,16 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
           restaurantId: Number(restaurantId),
           memo: index === 0 ? input.memo?.trim() || undefined : undefined,
         }),
+      );
+    }
+
+    for (const [index, place] of (input.places ?? []).entries()) {
+      const useMemo =
+        (input.restaurantIds?.length ?? 0) === 0 && index === 0
+          ? input.memo?.trim() || undefined
+          : undefined;
+      schedule = mapScheduleDetail(
+        await addScheduleItemFromPlaceApi(Number(schedule.id), { place, memo: useMemo }),
       );
     }
 
@@ -202,6 +221,21 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const addRestaurantFromPlace = useCallback(
+    async (scheduleId: string, place: SchedulePlacePayload, memo?: string) => {
+      try {
+        const detail = mapScheduleDetail(
+          await addScheduleItemFromPlaceApi(Number(scheduleId), { place, memo }),
+        );
+        setScheduleDetails((prev) => ({ ...prev, [scheduleId]: detail }));
+        setSchedules((prev) => prev.map((s) => (s.id === scheduleId ? detail : s)));
+      } catch (err) {
+        throw new Error(getApiErrorMessage(err, '장소를 일정에 추가하지 못했습니다.'));
+      }
+    },
+    [],
+  );
+
   const removeRestaurant = useCallback(
     async (scheduleId: string, restaurantId: string) => {
       const current = scheduleDetails[scheduleId] ?? schedules.find((s) => s.id === scheduleId);
@@ -241,6 +275,7 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
       updateSchedule,
       deleteSchedule,
       addRestaurant,
+      addRestaurantFromPlace,
       removeRestaurant,
       reorderRestaurants,
       refreshSchedules,
@@ -255,6 +290,7 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
       updateSchedule,
       deleteSchedule,
       addRestaurant,
+      addRestaurantFromPlace,
       removeRestaurant,
       reorderRestaurants,
       refreshSchedules,

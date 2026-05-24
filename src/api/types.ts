@@ -22,11 +22,11 @@ export type PreferenceCatalogItem = {
   displayName: string;
 };
 
+/** GET/PUT /api/v1/preferences/me 항목 (weight 필드 없음) */
 export type UserPreferenceItem = {
   preferenceId: number;
   code: string;
   displayName: string;
-  weight: number;
 };
 
 export type ApiRestaurant = {
@@ -47,6 +47,44 @@ export type ApiRestaurant = {
 
 export type RestaurantPageResponse = {
   content: ApiRestaurant[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+};
+
+export type RestaurantSortBy =
+  | 'rating'
+  | 'rating_asc'
+  | 'reviews'
+  | 'review_count_asc'
+  | 'distance';
+
+export type ApiReview = {
+  id: number;
+  restaurantId: number;
+  userId: number;
+  content: string;
+  rating: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ReviewPageResponse = {
+  content: ApiReview[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+};
+
+/** GET /api/v1/users/me/reviews (최근 수정 순, restaurantName 포함) */
+export type MyReviewResponse = ApiReview & {
+  restaurantName: string;
+};
+
+export type MyReviewPageResponse = {
+  content: MyReviewResponse[];
   page: number;
   size: number;
   totalElements: number;
