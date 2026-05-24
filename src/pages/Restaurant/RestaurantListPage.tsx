@@ -85,7 +85,7 @@ export default function RestaurantListPage() {
           </div>
         ) : restaurants.length > 0 ? (
           restaurants.map((r) => (
-            <RestaurantCard key={r.id} restaurant={r} showMatch={false} />
+            <RestaurantCard key={r.id} restaurant={r} />
           ))
         ) : (
           <div className="rounded-2xl bg-brand-soft py-12 text-center text-sm text-muted">

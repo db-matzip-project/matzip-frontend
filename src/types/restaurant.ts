@@ -16,8 +16,3 @@ export type Restaurant = {
   latitude?: number;
   longitude?: number;
 };
-
-export type RecommendedRestaurant = Restaurant & {
-  matchScore: number;
-  matchReasons: string[];
-};

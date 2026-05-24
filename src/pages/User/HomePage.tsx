@@ -77,9 +77,7 @@ export default function HomePage() {
     dashboardLoading || similarLoading || (similarIds.length === 0 && fallbackLoading);
   const error = dashboardError ?? (similarIds.length === 0 ? fallbackError : null);
 
-  /** 카드 숫자·리스트 모두 recommendations 기준 (stats.length 단독 사용 시 불일치) */
   const recommendCount = recommendations.length;
-  const topMatchScore = recommendations[0]?.matchScore ?? 0;
   const preferenceCount = stats?.preferenceCount ?? user?.preferences.length ?? 0;
   const summarySource =
     similarIds.length > 0 && similarRestaurants.length > 0
@@ -142,14 +140,10 @@ export default function HomePage() {
 
         {!loading && !error && (
           <>
-            <div className="mb-4 grid grid-cols-3 gap-2 rounded-2xl border border-brand-light bg-brand-soft p-4">
+            <div className="mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-brand-light bg-brand-soft p-4">
               <div className="text-center">
                 <p className="text-2xl font-bold text-brand">{recommendCount}</p>
                 <p className="text-[10px] text-muted">추천 맛집</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-brand">{topMatchScore}%</p>
-                <p className="text-[10px] text-muted">최고 일치도</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-brand">{preferenceCount}</p>

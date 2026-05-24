@@ -4,6 +4,7 @@ import KakaoPlaceSearch from '../../components/schedule/KakaoPlaceSearch';
 import RestaurantPicker from '../../components/schedule/RestaurantPicker';
 import type { SchedulePlacePayload } from '../../types/place';
 import RouteVisualization from '../../components/schedule/RouteVisualization';
+import SuggestedVisitOrder from '../../components/schedule/SuggestedVisitOrder';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import PageHeader from '../../components/ui/PageHeader';
@@ -146,9 +147,16 @@ export default function ScheduleCreatePage() {
         </div>
 
         {selectedIds.length >= 2 && (
-          <div>
-            <h2 className="mb-2 text-sm font-bold text-ink">동선 미리보기</h2>
-            <RouteVisualization restaurantIds={selectedIds} />
+          <div className="space-y-4">
+            <SuggestedVisitOrder
+              restaurantIds={selectedIds}
+              disabled={submitting}
+              onApply={(ids) => setSelectedIds(ids)}
+            />
+            <div>
+              <h2 className="mb-2 text-sm font-bold text-ink">동선 미리보기</h2>
+              <RouteVisualization restaurantIds={selectedIds} />
+            </div>
           </div>
         )}
 

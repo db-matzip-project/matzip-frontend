@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import KakaoPlaceSearch from '../../components/schedule/KakaoPlaceSearch';
 import RestaurantPicker from '../../components/schedule/RestaurantPicker';
 import RouteVisualization from '../../components/schedule/RouteVisualization';
+import SuggestedVisitOrder from '../../components/schedule/SuggestedVisitOrder';
 import SortableStopList from '../../components/schedule/SortableStopList';
 import Button from '../../components/ui/Button';
 import PageHeader from '../../components/ui/PageHeader';
@@ -177,6 +178,20 @@ export default function ScheduleDetailPage() {
                 {pickerSelection.length}곳 추가
               </Button>
             </div>
+          </section>
+        )}
+
+        {schedule.restaurantIds.length >= 2 && (
+          <section>
+            <SuggestedVisitOrder
+              restaurantIds={schedule.restaurantIds}
+              scheduleId={schedule.id}
+              disabled={busy}
+              onApply={async (ids) => {
+                await reorderRestaurants(schedule.id, ids);
+                await fetchScheduleDetail(schedule.id);
+              }}
+            />
           </section>
         )}
 
