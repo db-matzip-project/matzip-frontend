@@ -13,8 +13,10 @@
 
 | 구분 | 기술 | 카카오 키 종류 |
 |------|------|----------------|
-| **프론트** (`matzip-frontend`) | React + Vite + `react-kakao-maps-sdk` | **JavaScript 키** (`VITE_KAKAO_MAP_APP_KEY`) |
-| **백엔드** (`matzip-backend` 등) | Spring Boot | **REST API 키** (`KAKAO_REST_API_KEY`) — 장소 검색·DB import용 |
+| **프론트** (`matzip-frontend`) | React + Vite | **JavaScript 키** → 지도 (`VITE_KAKAO_MAP_APP_KEY`) |
+| **프론트** (`matzip-frontend`) | 브라우저 `dapi.kakao.com` | **REST API 키** → 검색 탭 (`VITE_KAKAO_REST_API_KEY`) |
+| **백엔드** (`matzip-backend` 등) | Spring Boot | **REST API 키** (`KAKAO_REST_API_KEY`) — `import/kakao`, from-place |
+| **네이티브 앱 키** | — | **웹 프로젝트에서는 불필요** |
 
 백엔드에서 Swagger만 보고 있으면 지도 UI는 없습니다.  
 지도 확인은 **프론트 `npm run dev` → 브라우저 → 하단 「지도」 탭** 입니다.
@@ -42,11 +44,23 @@ VITE_KAKAO_MAP_APP_KEY=<카카오 JavaScript 키>
 
 ```properties
 JWT_SECRET=...
-KAKAO_REST_API_KEY=...   # REST API (import 등)
+KAKAO_REST_API_KEY=...   # REST API — import/kakao, (일부) from-place
 # DB, 서버 포트 등
 ```
 
 **`VITE_` 접두사 변수는 백엔드에 넣지 마세요.**
+
+### `import/kakao` 400 / 「KAKAO_REST_API_KEY 추가」
+
+검색·필터 **「저장하고 보기」** 는 브라우저가 아니라 **Spring이** `POST /api/v1/restaurants/import/kakao` 를 호출합니다.
+
+| 넣는 위치 | 변수명 | 용도 |
+|-----------|--------|------|
+| **백엔드** `application.yml` / 백엔드 `.env` | `KAKAO_REST_API_KEY` | import/kakao (저장하고 보기) |
+| **프론트** `.env` | `VITE_KAKAO_REST_API_KEY` | 카카오 **검색 탭** (브라우저 직접 호출) |
+
+같은 REST API 키 **값**을 쓰더라도, 프론트 `.env`에 `KAKAO_REST_API_KEY`(VITE 없음)만 넣으면 **백엔드는 읽지 않습니다.**  
+설정 후 **Spring Boot 재시작** 필수.
 
 ---
 

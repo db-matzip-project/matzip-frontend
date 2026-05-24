@@ -145,3 +145,13 @@ export type SimilarUserRestaurant = {
   scheduleCount: number;
   contributorUserCount: number;
 };
+
+/** GET /api/v1/dashboard/me · /dashboard/stats/me · /dashboard/stats */
+export type DashboardMeResponse = {
+  userId: number;
+  scheduleCount: number;
+  scheduleItemCount: number;
+  preferenceCount: number;
+  recentScheduleItemCount30d: number;
+  similarTasteTopRestaurants: SimilarUserRestaurant[];
+};

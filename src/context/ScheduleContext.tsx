@@ -111,20 +111,34 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
   );
 
   const createSchedule = useCallback(async (input: CreateScheduleInput): Promise<Schedule> => {
+    const numericIds = (input.restaurantIds ?? [])
+      .map(Number)
+      .filter((id) => Number.isFinite(id) && id > 0);
+    const memoOnFirstItem = Boolean(input.memo?.trim());
+    const useBatchCreate = numericIds.length > 0 && !memoOnFirstItem;
+
     let schedule = mapScheduleDetail(
-      await createScheduleApi({
-        title: input.title.trim(),
-        travelDate: input.date,
-      }),
+      useBatchCreate
+        ? await createScheduleApi({
+            title: input.title.trim(),
+            travelDate: input.date,
+            restaurantIds: numericIds,
+          })
+        : await createScheduleApi({
+            title: input.title.trim(),
+            travelDate: input.date,
+          }),
     );
 
-    for (const [index, restaurantId] of (input.restaurantIds ?? []).entries()) {
-      schedule = mapScheduleDetail(
-        await addScheduleItemApi(Number(schedule.id), {
-          restaurantId: Number(restaurantId),
-          memo: index === 0 ? input.memo?.trim() || undefined : undefined,
-        }),
-      );
+    if (!useBatchCreate) {
+      for (const [index, restaurantId] of (input.restaurantIds ?? []).entries()) {
+        schedule = mapScheduleDetail(
+          await addScheduleItemApi(Number(schedule.id), {
+            restaurantId: Number(restaurantId),
+            memo: index === 0 ? input.memo?.trim() || undefined : undefined,
+          }),
+        );
+      }
     }
 
     for (const [index, place] of (input.places ?? []).entries()) {

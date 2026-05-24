@@ -5,6 +5,8 @@ import type { SchedulePlacePayload } from '../types/place';
 export type CreateScheduleRequest = {
   title: string;
   travelDate: string;
+  /** Swagger: 생성 시 visitOrder 1부터 함께 등록 */
+  restaurantIds?: number[];
 };
 
 export type UpdateScheduleRequest = {

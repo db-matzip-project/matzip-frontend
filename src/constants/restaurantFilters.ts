@@ -1,5 +1,9 @@
-export const RESTAURANT_CATEGORIES = [
-  '전체',
+/**
+ * Swagger: `category`는 everywhere `string` (enum 미기재).
+ * GET ?category= · 응답 `category` · from-place `place.category` 모두 동일 필드명.
+ * 백엔드 저장 값은 아래 6종(한식~디저트)으로 맞추는 것을 전제로 UI 구성.
+ */
+export const RESTAURANT_CATEGORY_VALUES = [
   '한식',
   '일식',
   '중식',
@@ -7,6 +11,10 @@ export const RESTAURANT_CATEGORIES = [
   '채식',
   '디저트',
 ] as const;
+
+export type RestaurantCategoryValue = (typeof RESTAURANT_CATEGORY_VALUES)[number];
+
+export const RESTAURANT_CATEGORIES = ['전체', ...RESTAURANT_CATEGORY_VALUES] as const;
 
 export const RATING_OPTIONS = [
   { value: 0, label: '전체' },

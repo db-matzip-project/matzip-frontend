@@ -79,7 +79,7 @@ export default function RestaurantSearchPage() {
         <div className="space-y-4 px-4 py-4">
           <KakaoPlaceSearch
             addLabel="저장하고 보기"
-            hint="카카오에서 찾은 장소를 DB에 저장한 뒤 상세 페이지로 이동합니다."
+            hint="카카오 장소를 DB에 저장한 뒤 상세로 이동합니다. (로그인 필요)"
             onAdd={handleSaveKakaoPlace}
           />
           <p className="text-center text-xs text-muted">

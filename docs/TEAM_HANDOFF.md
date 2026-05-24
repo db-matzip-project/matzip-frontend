@@ -19,8 +19,20 @@ VITE_KAKAO_MAP_APP_KEY=<카카오 JavaScript 키>
 
 - `Authorization: Bearer {accessToken}`
 - 비밀번호 최소 **6자** (가입/로그인 UI와 동일)
+- 카카오 **키워드 검색**: `VITE_KAKAO_REST_API_KEY` (프론트 직접 호출)
+- **장소 DB 저장 (from-place)**: `POST /api/v1/schedules/{scheduleId}/items/from-place` 만 사용 (JWT 필수)
+- **검색·필터 「저장하고 보기」**: 임시 일정 생성 → `POST .../schedules/{id}/items/from-place` → 일정 삭제 (import/kakao 는 폴백)
+- ~~`/api/v1/restaurants/from-place`~~ 백엔드 미제공 — 호출하지 않음
+
+## 대시보드 · 분석 (Swagger)
+
+- `GET /api/v1/dashboard/me` (없으면 `/dashboard/stats/me` → `/dashboard/stats` 순 fallback)
+- `GET /api/v1/analytics/similar-users/top-restaurants/me` (없으면 `/top-restaurants`)
+- 홈 「맞춤 추천」: 대시보드 `similarTasteTopRestaurants` + 식당 상세 조회
 
 ## 일정 · 카카오 장소 (Lazy)
+
+- `POST /api/v1/schedules` — `restaurantIds` 로 생성 시 한 번에 등록 (첫 항목 메모 있으면 기존처럼 items API)
 
 - 카카오 검색: 프론트 `VITE_KAKAO_REST_API_KEY` → 키워드 검색 API
 - 일정 추가: `POST /api/v1/schedules/{id}/items/from-place` (`place.apiId`, `name`, `latitude`, `longitude` 필수)
@@ -28,11 +40,24 @@ VITE_KAKAO_MAP_APP_KEY=<카카오 JavaScript 키>
 
 ## 식당·리뷰 API (Swagger 기준)
 
+### category (restaurant-controller)
+
+| 위치 | Swagger 타입 | 프론트 |
+|------|----------------|--------|
+| `GET /restaurants?category=` | string | `한식` 등 (`RESTAURANT_CATEGORY_VALUES`) |
+| 응답 `Restaurant.category` | string | 카드/상세 그대로 표시 |
+| `POST /schedules/{id}/items/from-place` → `place.category` | string | 카카오 `category_name` 전달 → **백엔드에서 6종으로 정규화** |
+
+백엔드 저장 시 `한식|일식|중식|양식|채식|디저트` 로 정규화. `GET ?category=` 는 위 값 **정확히** 매칭 (레거시 데이터는 마이그레이션 전까지 일부 어긋날 수 있음).
+
+### 기타
+
 - `GET /restaurants` — `minRating`, `sortBy` (`rating` | `reviews` | `distance` …), `tasteSimilar`, bounds
+- 정렬: **`sortBy`만 전송** (있으면 `sortBy` 우선, 없을 때만 `sort` — Swagger `sort`는 레거시 호환)
 - `GET/POST/DELETE /restaurants/{id}/reviews` — 리뷰 목록·업서트(201)·삭제(204)
 - **`GET /api/v1/users/me/reviews`** — 마이페이지 「내 리뷰」(최근 수정 순, `restaurantName` 포함) ✅
 - `POST /route/optimal-order` — `{ restaurantIds, startRestaurantId? }` → 일정 생성 전 동선 미리보기
-- `POST /restaurants/import/kakao` — 백엔드 일괄 수집용 (프론트 일정 추가는 `from-place` 사용)
+- `POST /restaurants/import/kakao` — 검색 탭 저장·일괄 수집 / 일정 추가는 `schedules/.../items/from-place`
 
 ## API 변경 (취향)
 

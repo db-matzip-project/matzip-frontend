@@ -1,26 +1,85 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import RestaurantCard from '../../components/restaurant/RestaurantCard';
 import PageHeader from '../../components/ui/PageHeader';
 import { PREFERENCE_LABELS } from '../../constants/preferences';
+import { getRestaurantByIdApi } from '../../api/restaurants';
 import { useAuth } from '../../context/AuthContext';
 import { usePreferences } from '../../context/PreferenceContext';
+import { useDashboard } from '../../hooks/useDashboard';
 import { useRestaurantList } from '../../hooks/useRestaurants';
+import { mapApiRestaurant } from '../../mappers/restaurant';
+import type { Restaurant } from '../../types/restaurant';
 import { buildRecommendations } from '../../utils/recommendations';
 
 export default function HomePage() {
   const { user } = useAuth();
   const { catalog } = usePreferences();
-  const { restaurants, loading, error } = useRestaurantList({
+  const { stats, loading: dashboardLoading, error: dashboardError } = useDashboard();
+  const {
+    restaurants: fallbackRestaurants,
+    loading: fallbackLoading,
+    error: fallbackError,
+  } = useRestaurantList({
     tasteSimilar: true,
     size: 30,
     sortBy: 'rating',
   });
 
-  const recommendations = useMemo(
-    () => buildRecommendations(restaurants, user?.preferences ?? [], 6),
-    [restaurants, user?.preferences],
+  const [similarRestaurants, setSimilarRestaurants] = useState<Restaurant[]>([]);
+  const [similarLoading, setSimilarLoading] = useState(false);
+
+  const similarIds = useMemo(
+    () => stats?.similarTasteTopRestaurants?.map((r) => r.restaurantId) ?? [],
+    [stats],
   );
+
+  useEffect(() => {
+    if (similarIds.length === 0) {
+      setSimilarRestaurants([]);
+      return;
+    }
+
+    let cancelled = false;
+    setSimilarLoading(true);
+
+    (async () => {
+      const fetched = await Promise.all(
+        similarIds.slice(0, 6).map(async (id) => {
+          try {
+            return mapApiRestaurant(await getRestaurantByIdApi(id));
+          } catch {
+            return null;
+          }
+        }),
+      );
+      if (!cancelled) {
+        setSimilarRestaurants(fetched.filter((r): r is Restaurant => r !== null));
+      }
+    })().finally(() => {
+      if (!cancelled) setSimilarLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [similarIds.join(',')]);
+
+  const baseRestaurants =
+    similarRestaurants.length > 0 ? similarRestaurants : fallbackRestaurants;
+
+  const recommendations = useMemo(
+    () => buildRecommendations(baseRestaurants, user?.preferences ?? [], 6),
+    [baseRestaurants, user?.preferences],
+  );
+
+  const loading =
+    dashboardLoading || similarLoading || (similarIds.length === 0 && fallbackLoading);
+  const error = dashboardError ?? (similarIds.length === 0 ? fallbackError : null);
+
+  const recommendCount =
+    stats?.similarTasteTopRestaurants?.length ?? recommendations.length;
+  const preferenceCount = stats?.preferenceCount ?? user?.preferences.length ?? 0;
 
   const labelForPref = (code: string) => {
     const fromCatalog = catalog.find((p) => p.code === code)?.displayName;
@@ -61,7 +120,11 @@ export default function HomePage() {
           <div>
             <h2 className="text-base font-bold text-ink">나를 위한 맞춤 추천</h2>
             <p className="text-xs text-muted">
-              취향·유사 사용자 기반 · 총 {recommendations.length}곳
+              {stats
+                ? '대시보드·유사 사용자 기반'
+                : '취향·유사 사용자 기반'}
+              {' · 총 '}
+              {recommendCount}곳
             </p>
           </div>
           <Link to="/restaurants" className="text-xs font-medium text-brand">
@@ -80,7 +143,7 @@ export default function HomePage() {
           <>
             <div className="mb-4 grid grid-cols-3 gap-2 rounded-2xl border border-brand-light bg-brand-soft p-4">
               <div className="text-center">
-                <p className="text-2xl font-bold text-brand">{recommendations.length}</p>
+                <p className="text-2xl font-bold text-brand">{recommendCount}</p>
                 <p className="text-[10px] text-muted">추천 맛집</p>
               </div>
               <div className="text-center">
@@ -90,9 +153,7 @@ export default function HomePage() {
                 <p className="text-[10px] text-muted">최고 일치도</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-brand">
-                  {user?.preferences.length ?? 0}
-                </p>
+                <p className="text-2xl font-bold text-brand">{preferenceCount}</p>
                 <p className="text-[10px] text-muted">선택 취향</p>
               </div>
             </div>

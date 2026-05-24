@@ -156,9 +156,7 @@ export default function RestaurantMapPage() {
           <p className="py-6 text-center text-sm text-muted">
             이 카테고리에 맞는 식당이 없습니다.
             <br />
-            <span className="text-xs text-subtle">
-              (백엔드 category 값이 「한식」 등과 다를 수 있습니다)
-            </span>
+            <span className="text-xs text-subtle">다른 카테고리를 선택하거나 「전체」로 보세요.</span>
           </p>
         )}
       </div>

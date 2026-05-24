@@ -8,7 +8,13 @@ import {
   type ReactNode,
 } from 'react';
 import { loginApi, logoutApi, signUpApi } from '../api/auth';
-import { getAccessToken, getApiErrorMessage, setAccessToken } from '../api/client';
+import {
+  extractAccessToken,
+  getAccessToken,
+  getApiErrorMessage,
+  setAccessToken,
+  setUnauthorizedHandler,
+} from '../api/client';
 import { getMyPreferencesApi, updateMyPreferencesApi } from '../api/preferences';
 import { getMeApi, updateMeApi } from '../api/users';
 import { mapApiUser, preferenceCodesFromApi } from '../mappers/user';
@@ -68,6 +74,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    setUnauthorizedHandler(() => {
+      setUser(null);
+      const path = window.location.pathname;
+      if (path !== '/login' && path !== '/signup') {
+        window.location.assign('/login');
+      }
+    });
+    return () => setUnauthorizedHandler(null);
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
     (async () => {
       if (!getAccessToken()) {
@@ -99,7 +116,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           loginId: username.trim(),
           password,
         });
-        setAccessToken(res.accessToken);
+        const token = extractAccessToken(res as unknown as Record<string, unknown>);
+        if (!token) {
+          return {
+            ok: false,
+            error: '로그인 응답에 토큰이 없습니다. 백엔드 accessToken 필드를 확인해 주세요.',
+          };
+        }
+        setAccessToken(token);
         const prefs = await getMyPreferencesApi();
         const publicUser = mapApiUser(res.user, preferenceCodesFromApi(prefs));
         setUser(publicUser);
@@ -136,7 +160,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           nickname: payload.name.trim(),
           age: payload.age ?? 20,
         });
-        setAccessToken(res.accessToken);
+        const token = extractAccessToken(res as unknown as Record<string, unknown>);
+        if (!token) {
+          return {
+            ok: false,
+            error: '회원가입 응답에 토큰이 없습니다. 백엔드 accessToken 필드를 확인해 주세요.',
+          };
+        }
+        setAccessToken(token);
         const publicUser = mapApiUser(res.user, []);
         setUser(publicUser);
         return { ok: true, user: publicUser };
