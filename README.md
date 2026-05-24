@@ -88,8 +88,9 @@ cd matzip-frontend
 # 의존성 설치
 npm install
 
-# API 서버 URL 설정 (.env.example 참고)
+# API 서버 URL 설정 (.env.example 참고, 로컬 백엔드 기본 8080)
 cp .env.example .env
+# 또는 .env.local 사용 가능 (git 제외)
 
 # 개발 서버 실행
 npm run dev
@@ -99,7 +100,9 @@ npm run dev
 
 | 변수 | 설명 |
 |------|------|
-| `VITE_API_BASE_URL` | 백엔드 API 베이스 URL (ngrok 등) |
+| `VITE_API_BASE_URL` | 백엔드 API 베이스 URL (로컬: `http://localhost:8080`) |
+| `VITE_API_PROXY_TARGET` | 개발 시 Vite 프록시 대상 (보통 BASE와 동일) |
+| `VITE_KAKAO_MAP_APP_KEY` | 카카오맵 **JavaScript** 키 (REST 키와 별도) |
 
 로그인 후 `accessToken`을 `Authorization: Bearer {accessToken}` 형식으로 전송합니다.
 

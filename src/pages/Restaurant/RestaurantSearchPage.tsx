@@ -10,6 +10,7 @@ import {
   filterRestaurants,
   type RestaurantFilterState,
 } from '../../utils/filterRestaurants';
+import { buildRestaurantListQuery } from '../../utils/restaurantSort';
 
 export default function RestaurantSearchPage() {
   const [filters, setFilters] = useState<RestaurantFilterState>(DEFAULT_FILTERS);
@@ -17,19 +18,8 @@ export default function RestaurantSearchPage() {
   const [tasteSimilar, setTasteSimilar] = useState(false);
 
   const apiParams = useMemo(
-    () => ({
-      category: filters.category !== '전체' ? filters.category : undefined,
-      minRating: filters.minRating > 0 ? filters.minRating : undefined,
-      sort:
-        filters.sortBy === 'reviews'
-          ? 'reviewCount,desc'
-          : filters.sortBy === 'distance'
-            ? 'distance,asc'
-            : 'rating,desc',
-      tasteSimilar,
-      size: 50,
-    }),
-    [filters.category, filters.minRating, filters.sortBy, tasteSimilar],
+    () => buildRestaurantListQuery(filters, { tasteSimilar, size: 50 }),
+    [filters, tasteSimilar],
   );
 
   const { restaurants: apiRestaurants, loading, error } = useRestaurantList(apiParams);
