@@ -5,6 +5,7 @@ import PageHeader from '../../components/ui/PageHeader';
 import { PREFERENCE_LABELS } from '../../constants/preferences';
 import { useAuth } from '../../context/AuthContext';
 import { usePreferences } from '../../context/PreferenceContext';
+import profileImage from '../../../assets/profile.png';
 
 export default function ProfilePage() {
   const { user, logout, hasCompletedOnboarding } = useAuth();
@@ -29,8 +30,12 @@ export default function ProfilePage() {
 
       <section className="space-y-4 bg-cream px-4 py-6">
         <div className="flex items-center gap-4 rounded-2xl border border-brand-light bg-surface p-5 shadow-sm">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-light text-2xl">
-            👤
+          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border border-brand-light bg-brand-soft">
+            <img
+              src={profileImage}
+              alt={`${user.name} 프로필`}
+              className="h-full w-full scale-[1.28] object-cover object-[52%_50%]"
+            />
           </div>
           <div>
             <h2 className="text-lg font-bold text-ink">{user.name}</h2>
