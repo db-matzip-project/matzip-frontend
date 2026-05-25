@@ -63,7 +63,7 @@ export default function RestaurantSearchPage() {
       <div className="border-b border-brand-light bg-surface px-4 py-3">
         <div className="flex gap-2">
           <Chip
-            label="DB 맛집"
+            label="저장된 맛집"
             selected={mode === 'db'}
             onClick={() => setMode('db')}
           />
@@ -79,13 +79,13 @@ export default function RestaurantSearchPage() {
         <div className="space-y-4 px-4 py-4">
           <KakaoPlaceSearch
             addLabel="저장하고 보기"
-            hint="카카오 장소를 DB에 저장한 뒤 상세로 이동합니다. (로그인 필요)"
+            hint="카카오 장소를 저장한 뒤 상세로 이동합니다. (로그인 필요)"
             onAdd={handleSaveKakaoPlace}
           />
           <p className="text-center text-xs text-muted">
             이미 저장된 맛집은{' '}
             <button type="button" className="font-medium text-brand" onClick={() => setMode('db')}>
-              DB 맛집
+              저장된 맛집
             </button>
             탭에서 검색하세요.
           </p>
@@ -99,7 +99,7 @@ export default function RestaurantSearchPage() {
                 value={keywordInput}
                 onChange={(e) => setKeywordInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && applyKeyword()}
-                placeholder="식당명, 주소, 설명 검색 (DB에 있는 맛집)"
+                placeholder="식당명, 주소, 설명 검색"
                 className="flex-1 rounded-xl border border-brand-light bg-brand-soft px-4 py-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand-light"
               />
               <button
@@ -187,7 +187,7 @@ export default function RestaurantSearchPage() {
                   <>
                     <p className="text-sm font-medium text-brand">검색 결과가 없습니다</p>
                     <p className="mt-1 text-xs text-muted">
-                      DB에 없는 맛집은{' '}
+                      저장되지 않은 맛집은{' '}
                       <button
                         type="button"
                         className="font-medium text-brand"
