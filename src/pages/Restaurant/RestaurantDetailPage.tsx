@@ -61,14 +61,6 @@ export default function RestaurantDetailPage() {
             <dt className="text-xs text-muted">전화</dt>
             <dd className="mt-0.5 text-sm font-medium text-ink">{restaurant.phone}</dd>
           </div>
-          {restaurant.latitude != null && restaurant.longitude != null && (
-            <div>
-              <dt className="text-xs text-muted">좌표</dt>
-              <dd className="mt-0.5 text-sm font-medium text-ink">
-                {restaurant.latitude.toFixed(5)}, {restaurant.longitude.toFixed(5)}
-              </dd>
-            </div>
-          )}
         </dl>
 
         <Link

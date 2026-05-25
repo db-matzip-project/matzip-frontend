@@ -39,6 +39,11 @@ function SortableStopItem({
   const [restaurant, setRestaurant] = useState<Restaurant | undefined>(
     () => getCachedRestaurant(id) ?? undefined,
   );
+  const meta = restaurant
+    ? [restaurant.category, restaurant.distance]
+        .filter((value) => value && value !== '-' && value !== '—')
+        .join(' · ')
+    : '';
 
   useEffect(() => {
     const cached = getCachedRestaurant(id);
@@ -110,9 +115,7 @@ function SortableStopItem({
 
       <div className="min-w-0 flex-1">
         <p className="truncate font-medium text-ink">{restaurant.name}</p>
-        <p className="text-xs text-muted">
-          {restaurant.category} · {restaurant.distance}
-        </p>
+        {meta && <p className="text-xs text-muted">{meta}</p>}
       </div>
 
       <button

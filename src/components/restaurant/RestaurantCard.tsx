@@ -6,6 +6,10 @@ type RestaurantCardProps = {
 };
 
 export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
+  const meta = [restaurant.category, restaurant.distance]
+    .filter((value) => value && value !== '-' && value !== '—')
+    .join(' · ');
+
   return (
     <Link
       to={`/restaurants/${restaurant.id}`}
@@ -16,9 +20,7 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <h3 className="truncate font-semibold text-ink">{restaurant.name}</h3>
-        <p className="text-xs text-muted">
-          {restaurant.category} · {restaurant.distance}
-        </p>
+        {meta && <p className="text-xs text-muted">{meta}</p>}
         <div className="flex items-center gap-1 text-xs">
           <span className="font-semibold text-brand">★ {restaurant.rating ?? 0}</span>
           <span className="text-subtle">
