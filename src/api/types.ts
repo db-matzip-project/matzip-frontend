@@ -42,7 +42,6 @@ export type ApiRestaurant = {
   longitude: number;
   rating: number | null;
   reviewCount: number | null;
-  scheduleAddCount: number | null;
 };
 
 export type RestaurantPageResponse = {
@@ -78,10 +77,12 @@ export type ApiReview = {
   id: number;
   restaurantId: number;
   userId: number;
+  userName: string;
   content: string;
   rating: number;
   createdAt: string;
   updatedAt: string;
+  restaurantName: string;
 };
 
 export type ReviewPageResponse = {
@@ -93,9 +94,7 @@ export type ReviewPageResponse = {
 };
 
 /** GET /api/v1/users/me/reviews (최근 수정 순, restaurantName 포함) */
-export type MyReviewResponse = ApiReview & {
-  restaurantName: string;
-};
+export type MyReviewResponse = ApiReview;
 
 export type MyReviewPageResponse = {
   content: MyReviewResponse[];

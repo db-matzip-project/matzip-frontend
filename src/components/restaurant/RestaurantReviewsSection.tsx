@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useRestaurantReviews } from '../../hooks/useRestaurantReviews';
 import type { ApiReview } from '../../api/types';
+import type { AuthUser } from '../../context/AuthContext';
 import Button from '../ui/Button';
 
 type RestaurantReviewsSectionProps = {
@@ -10,9 +11,13 @@ type RestaurantReviewsSectionProps = {
   onReviewChanged?: () => void;
 };
 
-function reviewAuthor(review: ApiReview, isMine: boolean): string {
-  if (isMine) return '내 리뷰';
-  return `리뷰어 #${review.userId}`;
+function reviewAuthor(review: ApiReview, currentUser: AuthUser | null): string {
+  const name = review.userName.trim();
+  if (name) return name;
+  if (currentUser && String(review.userId) === currentUser.id) {
+    return currentUser.nickname?.trim() || currentUser.name;
+  }
+  return '리뷰어';
 }
 
 function formatReviewDate(iso?: string): string {
@@ -165,7 +170,7 @@ export default function RestaurantReviewsSection({
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <p className="text-sm font-semibold text-ink">
-                    {reviewAuthor(review, !!isMine)}
+                    {reviewAuthor(review, user)}
                   </p>
                   {review.createdAt && (
                     <p className="text-[10px] text-subtle">{formatReviewDate(review.createdAt)}</p>
