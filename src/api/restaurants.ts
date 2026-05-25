@@ -48,6 +48,6 @@ export async function importKakaoRestaurantsApi(body: KakaoImportRequest) {
 }
 
 export async function findRestaurantByApiIdApi(apiId: string) {
-  const page = await getRestaurantsApi({ size: 100 });
+  const page = await getRestaurantsApi({ size: 500 });
   return page.content.find((r) => r.apiId === apiId) ?? null;
 }
