@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Chip from '../../components/ui/Chip';
 import Button from '../../components/ui/Button';
@@ -16,17 +16,27 @@ export default function OnboardingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const options =
-    catalog.length > 0
-      ? catalog.map((p) => {
-          const local = PREFERENCE_OPTIONS.find((o) => o.id === p.code);
-          return {
-            id: p.code,
-            label: p.displayName,
-            emoji: local?.emoji ?? '✨',
-          };
-        })
-      : PREFERENCE_OPTIONS.map((p) => ({ id: p.id, label: p.label, emoji: p.emoji }));
+  const options = useMemo(
+    () =>
+      catalog.length > 0
+        ? catalog.map((p) => {
+            const local = PREFERENCE_OPTIONS.find((o) => o.id === p.code);
+            return {
+              id: p.code,
+              label: p.displayName,
+              emoji: local?.emoji ?? '✨',
+            };
+          })
+        : PREFERENCE_OPTIONS.map((p) => ({ id: p.id, label: p.label, emoji: p.emoji })),
+    [catalog],
+  );
+
+  const selectableIds = useMemo(() => new Set(options.map((option) => option.id)), [options]);
+  const selectedCount = selected.filter((id) => selectableIds.has(id)).length;
+
+  useEffect(() => {
+    setSelected((prev) => prev.filter((id) => selectableIds.has(id)));
+  }, [selectableIds]);
 
   const toggle = (id: string) => {
     setSelected((prev) =>
@@ -47,13 +57,9 @@ export default function OnboardingPage() {
   };
 
   const handleComplete = () => {
-    if (selected.length < MIN_SELECTION) return;
-    saveAndGo(selected);
-  };
-
-  const handleSkip = () => {
-    if (selected.length > 0) saveAndGo(selected);
-    else navigate('/home', { replace: true });
+    const selectedCodes = selected.filter((id) => selectableIds.has(id));
+    if (selectedCodes.length < MIN_SELECTION) return;
+    saveAndGo(selectedCodes);
   };
 
   return (
@@ -89,12 +95,12 @@ export default function OnboardingPage() {
       )}
 
       <p className="mt-4 text-center text-sm text-muted">
-        <span className="font-semibold text-brand">{selected.length}</span>
+        <span className="font-semibold text-brand">{selectedCount}</span>
         개 선택됨
-        {selected.length < MIN_SELECTION && (
+        {selectedCount < MIN_SELECTION && (
           <span className="text-subtle">
             {' '}
-            · {MIN_SELECTION - selected.length}개 더 선택해 주세요
+            · {MIN_SELECTION - selectedCount}개 더 선택해 주세요
           </span>
         )}
       </p>
@@ -102,13 +108,10 @@ export default function OnboardingPage() {
       <div className="mt-auto flex flex-col gap-3 pt-8">
         <Button
           fullWidth
-          disabled={selected.length < MIN_SELECTION || submitting}
+          disabled={catalogLoading || selectedCount < MIN_SELECTION || submitting}
           onClick={handleComplete}
         >
           {submitting ? '저장 중...' : '맞춤 추천 시작하기'}
-        </Button>
-        <Button variant="ghost" fullWidth onClick={handleSkip} disabled={submitting}>
-          {selected.length > 0 ? '선택한 취향으로 건너뛰기' : '나중에 할게요'}
         </Button>
       </div>
     </div>

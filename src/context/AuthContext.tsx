@@ -15,7 +15,11 @@ import {
   setAccessToken,
   setUnauthorizedHandler,
 } from '../api/client';
-import { getMyPreferencesApi, updateMyPreferencesApi } from '../api/preferences';
+import {
+  getMyPreferencesApi,
+  getPreferenceCatalogApi,
+  updateMyPreferencesApi,
+} from '../api/preferences';
 import { getMeApi, updateMeApi } from '../api/users';
 import { mapApiUser, preferenceCodesFromApi } from '../mappers/user';
 import type { PublicUser } from '../types/user';
@@ -208,7 +212,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (preferenceCodes: string[]): Promise<AuthResult> => {
       if (!user) return { ok: false, error: '로그인이 필요합니다.' };
       try {
-        const ids = getIdsByCodes(preferenceCodes);
+        const uniqueCodes = Array.from(new Set(preferenceCodes));
+        let ids = getIdsByCodes(uniqueCodes);
+        if (ids.length !== uniqueCodes.length) {
+          const catalog = await getPreferenceCatalogApi();
+          ids = uniqueCodes
+            .map((code) => catalog.find((p) => p.code === code)?.id)
+            .filter((id): id is number => id !== undefined);
+        }
+        if (ids.length !== uniqueCodes.length) {
+          return {
+            ok: false,
+            error: '취향 목록을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.',
+          };
+        }
         const updated = await updateMyPreferencesApi(ids);
         const codes = preferenceCodesFromApi(updated);
         const next = { ...user, preferences: codes };
